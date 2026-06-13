@@ -14,7 +14,7 @@
   <div class="app-shell">
     <aside class="sidebar">
       <a class="brand" href="#" aria-label="Own Your Options home">
-        <span class="brand-mark">O</span>
+        <span class="brand-mark" aria-hidden="true"><b>O</b><i>Y</i><b>O</b></span>
         <span><strong>OWN YOUR OPTIONS</strong><small>COACHING</small></span>
       </a>
 
@@ -26,8 +26,10 @@
         <a class="nav-link" href="#stories" data-view="stories"><span>▣</span> Story library</a>
         <a class="nav-link" href="#community" data-view="community"><span>◌</span> Community</a>
         <a class="nav-link" href="#resources" data-view="resources"><span>□</span> Resource vault</a>
+        <a class="nav-link" href="#workbooks" data-view="workbooks"><span>▤</span> Workbooks & tools</a>
         <a class="nav-link" href="#coaching" data-view="coaching"><span>✦</span> Coaching hub</a>
-        <a class="nav-link admin-link" href="#admin" data-view="admin"><span>⚙</span> April admin</a>
+        <a class="nav-link admin-link admin-only" href="#admin" data-view="admin" hidden><span>⚙</span> April admin</a>
+        <a class="nav-link admin-only" href="#assessment-builder" data-view="assessment-builder" hidden><span>＋</span> Assessment builder</a>
       </nav>
 
       <div class="sidebar-quote">
@@ -44,7 +46,7 @@
     <main>
       <header class="topbar">
         <button class="menu-button" id="menuButton" aria-label="Open menu">☰</button>
-        <div class="topbar-wordmark">OWN YOUR <b>OPTIONS</b></div>
+        <div class="topbar-wordmark"><span class="mobile-monogram">OYO</span> OWN YOUR <b>OPTIONS</b></div>
         <div class="top-actions">
           <button class="icon-button" aria-label="Notifications">◦<span></span></button>
           <button class="mini-avatar" id="accountButton" aria-label="Open account">AL</button>
@@ -162,6 +164,6 @@
       <div id="accountState"></div>
     </section>
   </div>
-  <script type="module" src="app.js?v=3"></script>
+  <script type="module" src="app.js?v=6"></script>
 </body>
 </html>

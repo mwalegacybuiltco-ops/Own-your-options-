@@ -22,6 +22,10 @@ export function getSession() {
   return JSON.parse(localStorage.getItem(sessionKey) || "null");
 }
 
+export function isAdmin() {
+  return getSession()?.user?.app_metadata?.role === "admin";
+}
+
 async function request(path, options = {}, useSession = false) {
   const config = getCloudConfig();
   if (!config) throw new Error("Cloud is not connected");
@@ -55,6 +59,13 @@ export async function signIn(email, password) {
   return session;
 }
 
+export async function refreshUser() {
+  const user = await request("/auth/v1/user", {}, true);
+  const session = getSession();
+  if (session && user) localStorage.setItem(sessionKey, JSON.stringify({ ...session, user }));
+  return user;
+}
+
 export async function signUp(email, password, name) {
   return request("/auth/v1/signup", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, data: { name } })
@@ -67,6 +78,28 @@ export function signOut() {
 
 export async function fetchContent() {
   return request("/rest/v1/oyo_content?select=*&order=created_at.desc", {}, true);
+}
+
+export async function fetchQuestions() {
+  return request("/rest/v1/oyo_assessment_questions?select=*&order=sort_order.asc", {}, true);
+}
+
+export async function upsertQuestion(question) {
+  return request("/rest/v1/oyo_assessment_questions?on_conflict=id", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(question)
+  }, true);
+}
+
+export async function removeQuestion(id) {
+  return request(`/rest/v1/oyo_assessment_questions?id=eq.${id}`, { method: "DELETE" }, true);
+}
+
+export async function saveAssessmentResult(result) {
+  return request("/rest/v1/oyo_assessment_results", {
+    method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(result)
+  }, true);
 }
 
 export async function upsertContent(item) {

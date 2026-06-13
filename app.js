@@ -1,4 +1,4 @@
-import { getCloudConfig, saveCloudConfig, clearCloudConfig, getSession, testConnection, signIn, signUp, signOut, fetchContent, upsertContent, removeContent, uploadFile, createFileLink } from "./cloud.js?v=3";
+import { getCloudConfig, saveCloudConfig, clearCloudConfig, getSession, isAdmin, refreshUser, testConnection, signIn, signUp, signOut, fetchContent, upsertContent, removeContent, uploadFile, createFileLink, fetchQuestions, upsertQuestion, removeQuestion, saveAssessmentResult } from "./cloud.js?v=6";
 
 const continueButton = document.querySelector("#continueButton");
 const toast = document.querySelector("#toast");
@@ -51,6 +51,11 @@ const views = {
     tabs: ["Recommended", "Business", "AI tools", "Organization"],
     cards: [["↗","BUSINESS","Income option planner","Map an idea into a realistic first offer."],["✦","AI TOOLS","AI starter guide","Use AI to save time and make ideas easier to act on."],["✓","ORGANIZATION","Weekly freedom planner","Protect time for the choices that matter."],["□","CONTENT","Simple content system","Share your work without living online."],["◎","BOOKS","April’s reading list","Books that changed how I think about choice."],["♡","WELLBEING","Energy check-in","Build plans that respect your real capacity."]]
   },
+  workbooks: {
+    eyebrow: "WORKBOOKS & TOOLS", title: "Turn insight into action", copy: "Guided worksheets, planners, exercises, and complete workbooks that help members create and follow their plan.",
+    tabs: ["All", "Workbooks", "Worksheets", "Planners", "Exercises"],
+    cards: [["▤","WORKBOOKS","Own Your Options workbook","Move through the complete five-step framework."],["✓","WORKSHEETS","Options brainstorm","Discover choices and opportunities you may have missed."],["□","PLANNERS","Weekly freedom planner","Choose your priorities and protect time for action."],["◇","EXERCISES","Reality check-in","Get honest and clear about where you are right now."],["◎","WORKSHEETS","Confidence builder","Collect evidence that you can create change."],["→","PLANNERS","90-day options plan","Turn your next chapter into clear weekly actions."]]
+  },
   community: {
     eyebrow: "THE COLLECTIVE", title: "You don’t have to do this alone", copy: "Connect with people creating options, taking responsibility, and building freedom one choice at a time.",
     tabs: ["Community feed", "Live calls", "Challenges"],
@@ -71,6 +76,24 @@ const views = {
 const assessmentView = {
   eyebrow:"YOUR OPTIONS ASSESSMENT", title:"See where your choices can grow", copy:"This assessment helps you notice where you already feel powerful and where more support could create new options."
 };
+
+const starterQuestions = [
+  ["Responsibility","I focus my energy on what I can influence instead of what I cannot control."],
+  ["Responsibility","I take ownership of my choices without blaming myself or others."],
+  ["Financial freedom","I have more than one realistic way to earn income."],
+  ["Financial freedom","I feel able to make thoughtful choices about money."],
+  ["Health & energy","My daily routines support the energy I need for my priorities."],
+  ["Health & energy","I protect time for rest and recovery without guilt."],
+  ["Relationships","I can ask for support and communicate what I need."],
+  ["Relationships","My closest relationships support the life I want to build."],
+  ["Growth & mindset","I take action before I feel completely confident."],
+  ["Growth & mindset","I can see more than one path forward when plans change."],
+  ["Purpose & impact","I know what matters most to me in this season of life."],
+  ["Purpose & impact","My current choices are moving me toward a meaningful future."]
+].map((q,index)=>({id:index+1,category:q[0],question:q[1],low_label:"Not yet",high_label:"Absolutely",sort_order:index+1,status:"Published"}));
+let assessmentQuestions=JSON.parse(localStorage.getItem("oyo-assessment-questions")||"null")||starterQuestions;
+let assessmentAnswers={};
+let currentQuestion=0;
 
 const starterContent = [
   { id: 1, type: "Coaching lesson", library: "coaching", title: "Overcoming overwhelm", description: "Turn an overloaded mind into one clear decision.", format: "Video", status: "Published" },
@@ -107,6 +130,12 @@ if (actionInput.value) successMessage.classList.add("show");
 document.querySelectorAll(".nav-link").forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
+    if ((link.dataset.view === "admin" || link.dataset.view === "assessment-builder") && !isAdmin()) {
+      sidebar.classList.remove("open");
+      showToast("Administrator access required");
+      openAccount();
+      return;
+    }
     document.querySelectorAll(".nav-link").forEach((item) => item.classList.remove("active"));
     link.classList.add("active");
     sidebar.classList.remove("open");
@@ -117,6 +146,11 @@ document.querySelectorAll(".nav-link").forEach((link) => {
 function renderView(key) {
   const home = document.querySelector("#home");
   const host = document.querySelector("#viewHost");
+  if ((key === "admin" || key === "assessment-builder") && !isAdmin()) {
+    showToast("Administrator access required");
+    openAccount();
+    return;
+  }
   if (key === "home") {
     host.hidden = true;
     home.hidden = false;
@@ -127,17 +161,74 @@ function renderView(key) {
   host.hidden = false;
   if (key === "admin") {
     renderAdmin(host);
+  } else if (key === "assessment-builder") {
+    renderAssessmentBuilder(host);
   } else if (key === "assessment") {
-    host.innerHTML = `<section class="view-hero"><div><p class="eyebrow">${assessmentView.eyebrow}</p><h1>${assessmentView.title}</h1><p>${assessmentView.copy}</p><button class="primary-button" data-open="assessment-start">Retake assessment <span>→</span></button></div><div class="metric-ring"><div><strong>72</strong><small>OVERALL SCORE</small></div></div></section><section class="section-block"><div class="section-heading"><div><p class="eyebrow">YOUR RESULTS</p><h2>Where options can grow</h2></div></div><div class="score-list">${[["Responsibility",86],["Financial freedom",65],["Health & energy",70],["Relationships",68],["Growth & mindset",75],["Purpose & impact",60]].map(([n,s])=>`<div class="score-row"><strong>${n}</strong><div class="score-bar"><span style="width:${s}%"></span></div><b>${s}%</b></div>`).join("")}</div><div class="quote-panel">Your score is not a judgment. It is a map showing where one new choice could change the direction.</div></section>`;
+    renderAssessmentIntro(host);
   } else {
     const view = views[key] || views.philosophy;
     const custom = adminContent.filter(item => item.library === key && item.status === "Published");
-    host.innerHTML = `<section class="view-hero"><div><p class="eyebrow">${view.eyebrow}</p><h1>${view.title}</h1><p>${view.copy}</p></div></section><div class="view-tabs">${view.tabs.map((t,i)=>`<button class="${i===0?"active":""}">${t}</button>`).join("")}</div><div class="view-grid">${custom.map(c=>`<button class="feature-card" data-content-id="${c.id}"><span class="card-mark">✦</span><small>${c.type.toUpperCase()} · ${c.format.toUpperCase()}</small><strong>${c.title}</strong><p>${c.description}</p><b>Open →</b></button>`).join("")}${view.cards.map(c=>`<button class="feature-card" data-open="generic-card"><span class="card-mark">${c[0]}</span><small>${c[1]}</small><strong>${c[2]}</strong><p>${c[3]}</p><b>Open →</b></button>`).join("")}</div>`;
+    host.innerHTML = `<section class="view-hero"><div><p class="eyebrow">${view.eyebrow}</p><h1>${view.title}</h1><p>${view.copy}</p></div></section><div class="view-tabs">${view.tabs.map((t,i)=>`<button class="${i===0?"active":""}" data-filter="${t}">${t}</button>`).join("")}</div><div class="view-grid">${custom.map(c=>`<button class="feature-card" data-category="${c.type}" data-content-id="${c.id}"><span class="card-mark">✦</span><small>${c.type.toUpperCase()} · ${c.format.toUpperCase()}</small><strong>${c.title}</strong><p>${c.description}</p><b>Open →</b></button>`).join("")}${view.cards.map(c=>`<button class="feature-card" data-category="${c[1]}" data-open="generic-card"><span class="card-mark">${c[0]}</span><small>${c[1]}</small><strong>${c[2]}</strong><p>${c[3]}</p><b>Open →</b></button>`).join("")}</div><p class="empty-filter" hidden>No items have been added to this category yet.</p>`;
   }
   host.querySelectorAll("[data-open]").forEach(el => el.addEventListener("click",()=>openPanel(el.dataset.open)));
   host.querySelectorAll("[data-content-id]").forEach(el => el.addEventListener("click",()=>openPublishedContent(Number(el.dataset.contentId))));
+  bindViewTabs(host);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+function bindViewTabs(host) {
+  const tabs=host.querySelectorAll("[data-filter]");
+  if(!tabs.length)return;
+  tabs.forEach(tab=>tab.addEventListener("click",()=>{
+    tabs.forEach(item=>item.classList.remove("active"));tab.classList.add("active");
+    const filter=tab.dataset.filter.toLowerCase(), cards=[...host.querySelectorAll(".feature-card")];
+    let shown=0;
+    cards.forEach(card=>{
+      const category=(card.dataset.category||"").toLowerCase();
+      const visible=filter==="all" || category.includes(filter.replace(/s$/,"")) || filter.includes(category.replace(/s$/,""));
+      card.hidden=!visible;if(visible)shown++;
+    });
+    const empty=host.querySelector(".empty-filter");if(empty)empty.hidden=shown!==0;
+  }));
+}
+
+function renderAssessmentIntro(host) {
+  const previous=JSON.parse(localStorage.getItem("oyo-assessment-result")||"null");
+  host.innerHTML=`<section class="view-hero"><div><p class="eyebrow">${assessmentView.eyebrow}</p><h1>${assessmentView.title}</h1><p>${assessmentView.copy}</p><button class="primary-button" id="startAssessment">${previous?"Retake":"Start"} assessment <span>→</span></button></div>${previous?`<div class="metric-ring"><div><strong>${previous.overall}</strong><small>OVERALL SCORE</small></div></div>`:""}</section>${previous?assessmentResultsMarkup(previous):`<div class="quote-panel">This is not a test. It is a clear, honest look at where one new choice could create more freedom.</div>`}`;
+  document.querySelector("#startAssessment").addEventListener("click",()=>{assessmentAnswers={};currentQuestion=0;renderAssessmentQuestion(host);});
+}
+
+function renderAssessmentQuestion(host) {
+  const questions=assessmentQuestions.filter(q=>q.status==="Published");
+  if(!questions.length){host.innerHTML="<p>No assessment questions have been published yet.</p>";return;}
+  const q=questions[currentQuestion], selected=assessmentAnswers[q.id];
+  host.innerHTML=`<div class="assessment-shell"><p class="eyebrow">${q.category.toUpperCase()} · QUESTION ${currentQuestion+1} OF ${questions.length}</p><div class="assessment-progress"><span style="width:${((currentQuestion+1)/questions.length)*100}%"></span></div><section class="question-card"><h2>${q.question}</h2><div class="answer-scale">${[1,2,3,4,5].map(n=>`<button class="answer-choice ${selected===n?"selected":""}" data-score="${n}"><b>${n}</b>${n===1?q.low_label:n===5?q.high_label:""}</button>`).join("")}</div><div class="assessment-nav"><button class="outline-button" id="previousQuestion" ${currentQuestion===0?"disabled":""}>← Previous</button><button class="primary-button" id="nextQuestion">${currentQuestion===questions.length-1?"See my results":"Next"} <span>→</span></button></div></section></div>`;
+  document.querySelectorAll("[data-score]").forEach(btn=>btn.addEventListener("click",()=>{assessmentAnswers[q.id]=Number(btn.dataset.score);renderAssessmentQuestion(host);}));
+  document.querySelector("#previousQuestion").addEventListener("click",()=>{if(currentQuestion>0){currentQuestion--;renderAssessmentQuestion(host);}});
+  document.querySelector("#nextQuestion").addEventListener("click",()=>{if(!assessmentAnswers[q.id])return showToast("Choose an answer first"); if(currentQuestion<questions.length-1){currentQuestion++;renderAssessmentQuestion(host);}else finishAssessment(host,questions);});
+}
+
+async function finishAssessment(host,questions) {
+  const categories={};
+  questions.forEach(q=>{categories[q.category]??=[];categories[q.category].push(assessmentAnswers[q.id]);});
+  const scores=Object.fromEntries(Object.entries(categories).map(([name,answers])=>[name,Math.round((answers.reduce((a,b)=>a+b,0)/(answers.length*5))*100)]));
+  const result={overall:Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/Object.values(scores).length),scores,created_at:new Date().toISOString()};
+  localStorage.setItem("oyo-assessment-result",JSON.stringify(result)); host.innerHTML=assessmentResultsMarkup(result);
+  if(getSession())try{await saveAssessmentResult({user_id:getSession().user.id,overall_score:result.overall,scores:result.scores});}catch(error){showToast("Results saved on this device");}
+}
+
+function assessmentResultsMarkup(result) {
+  const advice=score=>score<50?"Start with one small, supported choice this week.":score<75?"You have momentum. Choose one area to strengthen next.":"This is a strong foundation. Use it to create options elsewhere.";
+  return `<section class="section-block"><div class="section-heading"><div><p class="eyebrow">YOUR RESULTS</p><h2>Your options score: ${result.overall}</h2></div><button class="outline-button" onclick="location.reload()">Retake</button></div><div class="result-grid">${Object.entries(result.scores).map(([name,score])=>`<article class="result-card"><strong>${name}</strong><b>${score}%</b><div class="score-bar"><span style="width:${score}%"></span></div><p>${advice(score)}</p></article>`).join("")}</div><div class="quote-panel">Your score is not a judgment. It is a map showing where one new choice could change the direction.</div></section>`;
+}
+
+function renderAssessmentBuilder(host) {
+  host.innerHTML=`<section class="view-hero"><div><p class="eyebrow">APRIL ADMIN</p><h1>Assessment builder</h1><p>Create the questions that help members see where they are and where their options can grow.</p></div><span class="status-pill">${assessmentQuestions.length} QUESTIONS</span></section><div class="admin-layout"><section class="admin-panel"><p class="eyebrow">ADD QUESTION</p><h2>New assessment question</h2><form class="admin-form" id="questionForm"><div class="field"><label>Question</label><textarea id="questionText" required placeholder="Example: I feel able to make thoughtful choices about money."></textarea></div><div class="field-row"><div class="field"><label>Category</label><select id="questionCategory">${["Responsibility","Financial freedom","Health & energy","Relationships","Growth & mindset","Purpose & impact"].map(c=>`<option>${c}</option>`).join("")}</select></div><div class="field"><label>Status</label><select id="questionStatus"><option>Published</option><option>Draft</option></select></div></div><div class="field-row"><div class="field"><label>Low answer label</label><input id="lowLabel" value="Not yet"></div><div class="field"><label>High answer label</label><input id="highLabel" value="Absolutely"></div></div><button class="primary-button" type="submit">Add question <span>→</span></button></form></section><section class="admin-panel"><p class="eyebrow">ASSESSMENT QUESTIONS</p><h2>Your questions</h2><div class="content-list" id="questionList"></div></section></div>`;
+  const list=document.querySelector("#questionList");
+  const refresh=()=>{list.innerHTML=assessmentQuestions.map(q=>`<article class="question-admin-item"><div><small>${q.category.toUpperCase()} · ${q.status.toUpperCase()}</small><strong>${q.question}</strong></div><div class="item-actions"><button data-question-delete="${q.id}" title="Delete">×</button></div></article>`).join("");list.querySelectorAll("[data-question-delete]").forEach(btn=>btn.addEventListener("click",async()=>{assessmentQuestions=assessmentQuestions.filter(q=>q.id!==Number(btn.dataset.questionDelete));saveQuestions();if(getCloudConfig())try{await removeQuestion(Number(btn.dataset.questionDelete));}catch{}refresh();showToast("Question removed");}));};
+  document.querySelector("#questionForm").addEventListener("submit",async event=>{event.preventDefault();const q={id:Date.now(),category:document.querySelector("#questionCategory").value,question:document.querySelector("#questionText").value.trim(),low_label:document.querySelector("#lowLabel").value.trim(),high_label:document.querySelector("#highLabel").value.trim(),sort_order:assessmentQuestions.length+1,status:document.querySelector("#questionStatus").value};assessmentQuestions.push(q);saveQuestions();if(getCloudConfig())try{await upsertQuestion(q);}catch(error){showToast("Saved locally. Sign in as admin to publish.");}event.target.reset();refresh();showToast("Question added");});refresh();
+}
+function saveQuestions(){localStorage.setItem("oyo-assessment-questions",JSON.stringify(assessmentQuestions));}
 
 function renderAdmin(host) {
   host.innerHTML = `<section class="view-hero"><div><p class="eyebrow">APRIL ADMIN</p><h1>Manage your coaching app</h1><p>Create and publish lessons, resources, stories, calls, and daily mindset content. Published items automatically appear in the matching member library.</p></div><span class="status-pill">ADMIN MODE</span></section>
@@ -148,7 +239,7 @@ function renderAdmin(host) {
   <div class="admin-layout">
     <section class="admin-panel"><p class="eyebrow">CONTENT EDITOR</p><h2 id="editorTitle">Add new content</h2>
       <form class="admin-form" id="contentForm">
-        <div class="field-row"><div class="field"><label for="contentType">Content type</label><select id="contentType"><option>Coaching lesson</option><option>Resource</option><option>Story</option><option>Live call</option><option>Daily mindset</option><option>Workbook</option></select></div><div class="field"><label for="contentLibrary">Member library</label><select id="contentLibrary"><option value="coaching">Coaching hub</option><option value="resources">Resource vault</option><option value="stories">Story library</option><option value="philosophy">Philosophy library</option><option value="community">Community</option></select></div></div>
+        <div class="field-row"><div class="field"><label for="contentType">Content type</label><select id="contentType"><option>Coaching lesson</option><option>Resource</option><option>Story</option><option>Live call</option><option>Daily mindset</option><option>Workbook</option><option>Worksheet</option><option>Planner</option><option>Exercise</option></select></div><div class="field"><label for="contentLibrary">Member library</label><select id="contentLibrary"><option value="coaching">Coaching hub</option><option value="resources">Resource vault</option><option value="workbooks">Workbooks & tools</option><option value="stories">Story library</option><option value="philosophy">Philosophy library</option><option value="community">Community</option></select></div></div>
         <div class="field"><label for="contentTitle">Title</label><input id="contentTitle" required placeholder="Example: Creating income options"></div>
         <div class="field"><label for="contentDescription">Description</label><textarea id="contentDescription" required placeholder="What will members learn or receive?"></textarea></div>
         <div class="field-row"><div class="field"><label for="contentFormat">Format</label><select id="contentFormat"><option>Video</option><option>Audio</option><option>Article</option><option>PDF</option><option>Live session</option><option>Worksheet</option></select></div><div class="field"><label for="contentStatus">Status</label><select id="contentStatus"><option>Published</option><option>Draft</option></select></div></div>
@@ -208,6 +299,7 @@ async function deleteContent(id) { adminContent = adminContent.filter(item=>item
 function saveAdminContent() { localStorage.setItem("oyo-admin-content", JSON.stringify(adminContent)); }
 async function openPublishedContent(id) { const item=adminContent.find(entry=>entry.id===id); if(!item)return; let fileLink=""; if(item.file_url&&getSession())try{fileLink=await createFileLink(item.file_url);}catch(error){showToast(error.message);} panels["published"]=[`${item.type.toUpperCase()} · ${item.format.toUpperCase()}`,item.title,`<p>${item.description}</p>${item.fileName?`<p><strong>Attached:</strong> ${item.fileName}</p>`:""}${fileLink?`<p><a href="${fileLink}" target="_blank">Open attached file →</a></p>`:item.file_url?`<p>Sign in to open this private attachment.</p>`:""}`]; openPanel("published"); }
 async function syncFromCloud(){ if(!getCloudConfig())return; const remote=await fetchContent(); if(Array.isArray(remote)){adminContent=remote;saveAdminContent();} }
+async function syncQuestionsFromCloud(){ if(!getCloudConfig()||!getSession())return; const remote=await fetchQuestions(); if(Array.isArray(remote)&&remote.length){assessmentQuestions=remote;saveQuestions();} }
 
 panels["generic-card"] = ["OWN YOUR OPTIONS", "Your next choice", "<p>This lesson is ready for your full coaching content, video, audio, worksheets, and member reflections.</p><p><strong>The next build step:</strong> connect your real program material and member accounts.</p>"];
 panels["assessment-start"] = ["OPTIONS ASSESSMENT", "Let’s see where you are", "<p>Answer a focused set of questions across responsibility, financial freedom, health, relationships, growth, and purpose.</p><ul class='modal-list'><li>About 8 minutes</li><li>Personalized options score</li><li>Recommended next steps</li></ul>"];
@@ -251,17 +343,24 @@ menuButton.addEventListener("click", () => sidebar.classList.toggle("open"));
 function renderAccount() {
   const session=getSession();
   if(session?.user) {
-    accountState.innerHTML=`<p class="account-note">Signed in securely as <strong>${session.user.email}</strong>. Your progress and member access can now follow you across devices.</p><button class="outline-button wide" id="signOutButton">Sign out</button>`;
+    accountState.innerHTML=`<p class="account-note">Signed in securely as <strong>${session.user.email}</strong>. Your progress and member access can now follow you across devices.</p>${isAdmin()?'<p class="account-success">Administrator access is active.</p>':'<p class="account-note">Member access is active.</p>'}<button class="outline-button wide" id="signOutButton">Sign out</button>`;
     document.querySelector("#accountTitle").textContent="Your member account";
-    document.querySelector("#signOutButton").addEventListener("click",()=>{signOut();accountBackdrop.hidden=true;showToast("Signed out");});
+    document.querySelector("#signOutButton").addEventListener("click",()=>{signOut();updateAccess();accountBackdrop.hidden=true;showToast("Signed out");renderView("home");});
   } else {
-    accountState.innerHTML=`<p class="account-note">${getCloudConfig()?"Sign in to access your coaching from any device.":"April must connect the secure cloud in April Admin before member sign-in is available."}</p><form class="account-form" id="signInForm"><div class="field"><label>Email</label><input id="accountEmail" type="email" required></div><div class="field"><label>Password</label><input id="accountPassword" type="password" minlength="6" required></div><button class="primary-button" type="submit">Sign in <span>→</span></button><button class="text-button" id="createAccount" type="button">Create a new member account</button></form>`;
+    accountState.innerHTML=`<p class="account-note">Sign in to access your coaching from any device.</p><div id="accountMessage"></div><form class="account-form" id="signInForm"><div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required></div><div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="6" required></div><button class="primary-button" type="submit">Sign in <span>→</span></button><button class="text-button" id="createAccount" type="button">Create a new member account</button></form>`;
     document.querySelector("#accountTitle").textContent="Sign in to your options";
-    document.querySelector("#signInForm").addEventListener("submit",async event=>{event.preventDefault();try{await signIn(document.querySelector("#accountEmail").value,document.querySelector("#accountPassword").value);showToast("Welcome back");renderAccount();}catch(error){showToast(error.message);}});
-    document.querySelector("#createAccount").addEventListener("click",async()=>{const email=document.querySelector("#accountEmail").value,password=document.querySelector("#accountPassword").value;if(!email||!password)return showToast("Enter email and password first");try{await signUp(email,password,"Own Your Options member");showToast("Check your email to confirm your account");}catch(error){showToast(error.message);}});
+    document.querySelector("#signInForm").addEventListener("submit",async event=>{event.preventDefault();setAccountMessage("Signing in…");try{await signIn(document.querySelector("#accountEmail").value,document.querySelector("#accountPassword").value);await refreshUser();updateAccess();showToast("Welcome back");renderAccount();}catch(error){setAccountMessage(friendlyAuthError(error.message),true);}});
+    document.querySelector("#createAccount").addEventListener("click",async()=>{const email=document.querySelector("#accountEmail").value,password=document.querySelector("#accountPassword").value;if(!email||!password)return setAccountMessage("Enter your email and password first.",true);setAccountMessage("Creating your account…");try{await signUp(email,password,"Own Your Options member");setAccountMessage("Account created. Check your email and confirm it before signing in.");}catch(error){setAccountMessage(friendlyAuthError(error.message),true);}});
   }
 }
-accountButton.addEventListener("click",()=>{renderAccount();accountBackdrop.hidden=false;});
+function setAccountMessage(message,isError=false){const area=document.querySelector("#accountMessage");if(area){area.className=isError?"account-error":"account-success";area.textContent=message;}}
+function friendlyAuthError(message){if(message.toLowerCase().includes("invalid login"))return "The email or password is incorrect, or your email has not been confirmed yet.";if(message.toLowerCase().includes("email not confirmed"))return "Please confirm your email using the message Supabase sent you, then sign in.";return message;}
+function updateAccess(){document.querySelectorAll(".admin-only").forEach(link=>link.hidden=!isAdmin());}
+function openAccount(){renderAccount();accountBackdrop.hidden=false;document.body.style.overflow="hidden";}
+accountButton.addEventListener("click",openAccount);
 accountClose.addEventListener("click",()=>accountBackdrop.hidden=true);
-accountBackdrop.addEventListener("click",event=>{if(event.target===accountBackdrop)accountBackdrop.hidden=true;});
-if(getCloudConfig()) syncFromCloud().catch(()=>{});
+accountBackdrop.addEventListener("click",event=>{if(event.target===accountBackdrop){accountBackdrop.hidden=true;document.body.style.overflow="";}});
+accountClose.addEventListener("click",()=>document.body.style.overflow="");
+updateAccess();
+if(getSession()) refreshUser().then(updateAccess).catch(()=>{signOut();updateAccess();});
+if(getCloudConfig()) { syncFromCloud().catch(()=>{}); syncQuestionsFromCloud().catch(()=>{}); }
