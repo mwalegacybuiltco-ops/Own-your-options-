@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#09080d">
+  <title>Own Your Options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Italiana&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Own Your Options home">
+        <span class="brand-mark">O</span>
+        <span><strong>OWN YOUR OPTIONS</strong><small>COACHING</small></span>
+      </a>
+
+      <nav aria-label="Main navigation">
+        <a class="nav-link active" href="#home" data-view="home"><span>⌂</span> Dashboard</a>
+        <a class="nav-link" href="#philosophy" data-view="philosophy"><span>◇</span> Philosophy library</a>
+        <a class="nav-link" href="#assessment" data-view="assessment"><span>◎</span> Assessment</a>
+        <a class="nav-link" href="#plan" data-view="plan"><span>✓</span> Action plan</a>
+        <a class="nav-link" href="#stories" data-view="stories"><span>▣</span> Story library</a>
+        <a class="nav-link" href="#community" data-view="community"><span>◌</span> Community</a>
+        <a class="nav-link" href="#resources" data-view="resources"><span>□</span> Resource vault</a>
+        <a class="nav-link" href="#coaching" data-view="coaching"><span>✦</span> Coaching hub</a>
+        <a class="nav-link admin-link" href="#admin" data-view="admin"><span>⚙</span> April admin</a>
+      </nav>
+
+      <div class="sidebar-quote">
+        <p>“You have the power.<br>You have the choices.”</p>
+        <span>April</span>
+      </div>
+      <button class="profile-button" data-open="profile">
+        <span class="avatar">AL</span>
+        <span><strong>April Lungal</strong><small>Coach & founder</small></span>
+        <b>⋯</b>
+      </button>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <button class="menu-button" id="menuButton" aria-label="Open menu">☰</button>
+        <div class="topbar-wordmark">OWN YOUR <b>OPTIONS</b></div>
+        <div class="top-actions">
+          <button class="icon-button" aria-label="Notifications">◦<span></span></button>
+          <button class="mini-avatar" id="accountButton" aria-label="Open account">AL</button>
+        </div>
+      </header>
+
+      <section class="page" id="home">
+        <div class="welcome-row">
+          <div>
+            <p class="eyebrow">FRIDAY, JUNE 12</p>
+            <h1>Good morning, April.</h1>
+            <p class="lead">One clear choice today can create a whole new direction.</p>
+          </div>
+          <button class="outline-button" data-open="action-plan">View my action plan <span>→</span></button>
+        </div>
+
+        <section class="hero-panel">
+          <div class="hero-copy">
+            <div class="pill">WEEK 4 OF 12</div>
+            <p class="eyebrow gold">YOUR CURRENT FOCUS</p>
+            <h2>Create more <em>options.</em></h2>
+            <p>You’ve defined where you want to go. This week, you’re opening up new paths to get there.</p>
+            <div class="hero-actions">
+              <button class="primary-button" id="continueButton">Continue week 4 <span>→</span></button>
+              <span>2 of 4 actions complete</span>
+            </div>
+          </div>
+          <div class="portrait" aria-label="April Lungal">
+            <img src="assets/brand-board.png" alt="April Lungal, Own Your Options coach">
+            <div class="portrait-label"><strong>April Lungal</strong><span>Your coach</span></div>
+          </div>
+        </section>
+
+        <section class="section-block daily-plan">
+          <div class="section-heading">
+            <div><p class="eyebrow">YOUR DAILY PLAN</p><h2>Three choices for today</h2></div>
+            <span class="progress-label">1 of 3 complete</span>
+          </div>
+          <div class="daily-grid">
+            <button class="daily-card" data-open="mindset"><span>◇</span><small>5 MIN READ</small><strong>Mindset</strong><p>Responsibility creates options.</p><b>Read today’s idea →</b></button>
+            <button class="daily-card" data-open="reflection"><span>♡</span><small>REFLECTION</small><strong>Answer</strong><p>What choice are you avoiding?</p><b>Write your answer →</b></button>
+            <button class="daily-card completed" data-open="action-plan"><span>✓</span><small>ACTION</small><strong>Take action</strong><p>One small move before tomorrow.</p><b>View action →</b></button>
+          </div>
+        </section>
+
+        <section class="section-block" id="journey">
+          <div class="section-heading">
+            <div><p class="eyebrow">THE OWN YOUR OPTIONS FRAMEWORK</p><h2>Your journey</h2></div>
+            <span class="progress-label">38% complete</span>
+          </div>
+          <div class="journey-track" aria-label="Journey progress">
+            <div class="journey-line"><span></span></div>
+            <button class="step complete" data-open="step-1"><b>✓</b><span><small>STEP 1</small>Own your reality</span></button>
+            <button class="step complete" data-open="step-2"><b>✓</b><span><small>STEP 2</small>Define your future</span></button>
+            <button class="step current" data-open="step-3"><b>3</b><span><small>STEP 3</small>Create more options</span></button>
+            <button class="step" data-open="step-4"><b>4</b><span><small>STEP 4</small>Implement with intention</span></button>
+            <button class="step" data-open="step-5"><b>5</b><span><small>STEP 5</small>Build freedom</span></button>
+          </div>
+        </section>
+
+        <div class="content-grid">
+          <section class="section-block action-card">
+            <div class="section-heading">
+              <div><p class="eyebrow">TODAY’S NEXT STEP</p><h2>Turn one idea into action</h2></div>
+              <span class="time-chip">15 min</span>
+            </div>
+            <p>Choose one option from your brainstorm and write the smallest action you can take before tomorrow.</p>
+            <div class="action-input">
+              <input id="actionInput" placeholder="What action will you take?" aria-label="Today's action">
+              <button id="saveAction" aria-label="Save action">→</button>
+            </div>
+            <div class="success-message" id="successMessage">Action saved. That’s momentum.</div>
+          </section>
+
+          <section class="section-block session-card" id="sessions">
+            <div class="section-heading">
+              <div><p class="eyebrow">UP NEXT</p><h2>Group coaching call</h2></div>
+              <span class="calendar-icon">17</span>
+            </div>
+            <div class="session-date"><strong>Wednesday, June 17</strong><span>6:00 PM · 60 minutes</span></div>
+            <button class="outline-button wide" data-open="calendar">Add to calendar <span>＋</span></button>
+          </section>
+        </div>
+
+        <section class="section-block tools" id="tools">
+          <div class="section-heading">
+            <div><p class="eyebrow">KEEP MOVING</p><h2>Tools for this week</h2></div>
+            <a href="#tools" data-open="all-tools">View all tools →</a>
+          </div>
+          <div class="tool-grid">
+            <button class="tool-card" data-open="brainstorm"><span class="tool-icon">✦</span><small>WORKSHEET</small><strong>Options brainstorm</strong><p>See possibilities you may have missed.</p><b>Open tool →</b></button>
+            <button class="tool-card" data-open="audio"><span class="tool-icon">◎</span><small>10 MIN AUDIO</small><strong>Moving through doubt</strong><p>A reset for when fear gets loud.</p><b>Listen now →</b></button>
+            <button class="tool-card" data-open="reflection"><span class="tool-icon">✓</span><small>CHECK-IN</small><strong>Weekly reflection</strong><p>Notice your wins and choose what’s next.</p><b>Start check-in →</b></button>
+          </div>
+        </section>
+      </section>
+      <section class="page app-view" id="viewHost" hidden></section>
+    </main>
+  </div>
+  <div class="toast" id="toast">Week 4 opened</div>
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      <p class="eyebrow" id="modalEyebrow">OWN YOUR OPTIONS</p>
+      <h2 id="modalTitle">Your next step</h2>
+      <div class="modal-content" id="modalContent"></div>
+      <button class="primary-button modal-action" id="modalAction">Done <span>✓</span></button>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="accountBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+      <button class="modal-close" id="accountClose" aria-label="Close account">×</button>
+      <p class="eyebrow">MEMBER ACCOUNT</p>
+      <h2 id="accountTitle">Sign in to your options</h2>
+      <div id="accountState"></div>
+    </section>
+  </div>
+  <script type="module" src="app.js?v=3"></script>
+</body>
+</html>
