@@ -90,8 +90,8 @@
         <span>April</span>
       </div>
       <button class="profile-button" data-open="profile">
-        <span class="avatar">AL</span>
-        <span><strong>April Lungal</strong><small>Coach & founder</small></span>
+        <span class="avatar" id="sidebarAvatar">YO</span>
+        <span><strong id="sidebarName">Your account</strong><small id="sidebarRole">Own Your Options member</small></span>
         <b>⋯</b>
       </button>
     </aside>
@@ -102,29 +102,29 @@
         <div class="topbar-wordmark"><span class="mobile-monogram">OYO</span> OWN YOUR <b>OPTIONS</b></div>
         <div class="top-actions">
           <button class="icon-button" aria-label="Notifications">◦<span></span></button>
-          <button class="mini-avatar" id="accountButton" aria-label="Open account">AL</button>
+          <button class="mini-avatar" id="accountButton" aria-label="Open account">YO</button>
         </div>
       </header>
 
       <section class="page" id="home">
         <div class="welcome-row">
           <div>
-            <p class="eyebrow">FRIDAY, JUNE 12</p>
-            <h1>Good morning, April.</h1>
-            <p class="lead">One clear choice today can create a whole new direction.</p>
+            <p class="eyebrow" id="todayDate">WELCOME TO OWN YOUR OPTIONS</p>
+            <h1 id="welcomeHeading">Your journey starts here.</h1>
+            <p class="lead">Begin with one honest look at where you are today.</p>
           </div>
           <button class="outline-button" data-open="action-plan">View my action plan <span>→</span></button>
         </div>
 
         <section class="hero-panel">
           <div class="hero-copy">
-            <div class="pill">WEEK 4 OF 12</div>
+            <div class="pill">WEEK 1 OF 12</div>
             <p class="eyebrow gold">YOUR CURRENT FOCUS</p>
-            <h2>Create more <em>options.</em></h2>
-            <p>You’ve defined where you want to go. This week, you’re opening up new paths to get there.</p>
+            <h2>Own your <em>reality.</em></h2>
+            <p>Your first step is getting clear on where you are, what matters, and what you want to change.</p>
             <div class="hero-actions">
-              <button class="primary-button" id="continueButton">Continue week 4 <span>→</span></button>
-              <span>2 of 4 actions complete</span>
+              <button class="primary-button" id="continueButton">Begin week 1 <span>→</span></button>
+              <span>0 of 3 actions complete</span>
             </div>
           </div>
           <div class="portrait" aria-label="April Lungal">
@@ -148,13 +148,13 @@
         <section class="section-block" id="journey">
           <div class="section-heading">
             <div><p class="eyebrow">THE OWN YOUR OPTIONS FRAMEWORK</p><h2>Your journey</h2></div>
-            <span class="progress-label">38% complete</span>
+            <span class="progress-label">0% complete</span>
           </div>
           <div class="journey-track" aria-label="Journey progress">
             <div class="journey-line"><span></span></div>
-            <button class="step complete" data-open="step-1"><b>✓</b><span><small>STEP 1</small>Own your reality</span></button>
-            <button class="step complete" data-open="step-2"><b>✓</b><span><small>STEP 2</small>Define your future</span></button>
-            <button class="step current" data-open="step-3"><b>3</b><span><small>STEP 3</small>Create more options</span></button>
+            <button class="step current" data-open="step-1"><b>1</b><span><small>STEP 1</small>Own your reality</span></button>
+            <button class="step" data-open="step-2"><b>2</b><span><small>STEP 2</small>Define your future</span></button>
+            <button class="step" data-open="step-3"><b>3</b><span><small>STEP 3</small>Create more options</span></button>
             <button class="step" data-open="step-4"><b>4</b><span><small>STEP 4</small>Implement with intention</span></button>
             <button class="step" data-open="step-5"><b>5</b><span><small>STEP 5</small>Build freedom</span></button>
           </div>
@@ -163,10 +163,10 @@
         <div class="content-grid">
           <section class="section-block action-card">
             <div class="section-heading">
-              <div><p class="eyebrow">TODAY’S NEXT STEP</p><h2>Turn one idea into action</h2></div>
-              <span class="time-chip">15 min</span>
+              <div><p class="eyebrow">TODAY’S NEXT STEP</p><h2>Name where you are today</h2></div>
+              <span class="time-chip">5 min</span>
             </div>
-            <p>Choose one option from your brainstorm and write the smallest action you can take before tomorrow.</p>
+            <p>Write one honest sentence about what feels most important to change or understand right now.</p>
             <div class="action-input">
               <input id="actionInput" placeholder="What action will you take?" aria-label="Today's action">
               <button id="saveAction" aria-label="Save action">→</button>
@@ -199,7 +199,7 @@
       <section class="page app-view" id="viewHost" hidden></section>
     </main>
   </div>
-  <div class="toast" id="toast">Week 4 opened</div>
+  <div class="toast" id="toast">Week 1 opened</div>
   <div class="modal-backdrop" id="modalBackdrop" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <button class="modal-close" id="modalClose" aria-label="Close">×</button>
@@ -217,6 +217,6 @@
       <div id="accountState"></div>
     </section>
   </div>
-  <script type="module" src="app.js?v=9"></script>
+  <script type="module" src="app.js?v=11"></script>
 </body>
 </html>

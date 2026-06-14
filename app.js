@@ -19,6 +19,10 @@ const accountButton = document.querySelector("#accountButton");
 const accountBackdrop = document.querySelector("#accountBackdrop");
 const accountClose = document.querySelector("#accountClose");
 const accountState = document.querySelector("#accountState");
+const welcomeHeading = document.querySelector("#welcomeHeading");
+const sidebarName = document.querySelector("#sidebarName");
+const sidebarRole = document.querySelector("#sidebarRole");
+const sidebarAvatar = document.querySelector("#sidebarAvatar");
 
 const panels = {
   "action-plan": ["MY ACTION PLAN", "Three choices that move you forward", `<ul class="modal-list"><li><strong>Today</strong><br>Choose one small action and complete it.</li><li><strong>This week</strong><br>Finish your options brainstorm.</li><li><strong>Next call</strong><br>Bring one decision you want support with.</li></ul>`],
@@ -79,9 +83,9 @@ const views = {
     cards: [["17","UPCOMING LIVE CALL","Group coaching call","Wednesday, June 17 · 6:00 PM"],["▶","CALL REPLAY","Overcoming overwhelm","Turn an overloaded mind into one clear decision."],["▶","CALL REPLAY","Creating income options","Find practical possibilities from what you already know."],["□","WORKBOOK","Own Your Options workbook","The complete framework in one guided workbook."],["?","Q&A LIBRARY","Ask April","Browse answers to common coaching questions."],["✦","PRIVATE COACHING","Book a private session","Get personalized clarity and an action plan."]]
   },
   plan: {
-    eyebrow: "THIS WEEK'S PLAN", title: "Create more options", copy: "Your clear, realistic plan for moving from idea to action this week.",
+    eyebrow: "THIS WEEK'S PLAN", title: "Own your reality", copy: "Your first week is about getting honest and clear before deciding what comes next.",
     tabs: ["This week", "This month", "Notes"],
-    cards: [["1","MONDAY","Learn one new skill","Complete the 10-minute lesson."],["2","WEDNESDAY","Take one action daily","Choose something small enough to finish."],["3","FRIDAY","Reach out to one person","Ask for perspective, support, or connection."],["✓","PROGRESS","Two of four complete","Keep going. Consistency creates confidence."],["□","NOTES","Capture what you notice","Write down ideas before they disappear."],["→","NEXT WEEK","Prepare your next focus","Choose what deserves your energy next."]]
+    cards: [["1","START HERE","Complete your reality check-in","Name what feels most important right now."],["2","THIS WEEK","Notice what you can influence","Separate what you control from what you cannot."],["3","REFLECT","Choose what matters most","Identify the area that deserves your attention first."],["✓","PROGRESS","Nothing completed yet","Your first completed step will appear here."],["□","NOTES","Capture what you notice","Write down ideas before they disappear."],["→","NEXT WEEK","Define your future","Next, you will begin creating a clear vision."]]
   }
 };
 
@@ -123,7 +127,7 @@ function showToast(message) {
 }
 
 continueButton.addEventListener("click", () => {
-  openPanel("step-3");
+  openPanel("step-1");
 });
 
 saveAction.addEventListener("click", () => {
@@ -201,7 +205,7 @@ function renderView(key) {
 
 function renderProgress(host) {
   const result=JSON.parse(localStorage.getItem("oyo-assessment-result")||"null"), action=localStorage.getItem("oyo-today-action")||"";
-  host.innerHTML=`<section class="view-hero"><div><p class="eyebrow">MY PROGRESS</p><h1>Your choices are adding up</h1><p>Return to what you saved, notice what you completed, and choose the next small action.</p></div>${result?`<div class="metric-ring"><div><strong>${result.overall}</strong><small>OPTIONS SCORE</small></div></div>`:""}</section><div class="progress-overview"><article class="progress-stat"><small>COMPLETED</small><strong>${memberProgress.completed.length}</strong> <span>items</span></article><article class="progress-stat"><small>SAVED</small><strong>${memberProgress.saved.length}</strong> <span>for later</span></article><article class="progress-stat"><small>REFLECTIONS</small><strong>${memberProgress.reflections.length}</strong> <span>written</span></article><article class="progress-stat"><small>JOURNEY</small><strong>38%</strong></article></div><div class="progress-sections"><section class="progress-panel"><p class="eyebrow">TODAY</p><h2>Your next action</h2>${action?entryMarkup({id:0,title:action,type:"Action"},"action"):'<p class="empty-state">Add an action from your dashboard and it will appear here.</p>'}</section><section class="progress-panel"><p class="eyebrow">SAVED FOR LATER</p><h2>Saved resources</h2><div class="saved-list">${savedMarkup(memberProgress.saved,"saved")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WINS</p><h2>Completed</h2><div class="saved-list">${savedMarkup(memberProgress.completed,"completed")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WORDS</p><h2>Reflections</h2><div class="saved-list">${savedMarkup(memberProgress.reflections,"reflections")}</div></section></div>`;
+  host.innerHTML=`<section class="view-hero"><div><p class="eyebrow">MY PROGRESS</p><h1>Your choices are adding up</h1><p>Return to what you saved, notice what you completed, and choose the next small action.</p></div>${result?`<div class="metric-ring"><div><strong>${result.overall}</strong><small>OPTIONS SCORE</small></div></div>`:""}</section><div class="progress-overview"><article class="progress-stat"><small>COMPLETED</small><strong>${memberProgress.completed.length}</strong> <span>items</span></article><article class="progress-stat"><small>SAVED</small><strong>${memberProgress.saved.length}</strong> <span>for later</span></article><article class="progress-stat"><small>REFLECTIONS</small><strong>${memberProgress.reflections.length}</strong> <span>written</span></article><article class="progress-stat"><small>JOURNEY</small><strong>${Math.min(100,memberProgress.completed.length*5)}%</strong></article></div><div class="progress-sections"><section class="progress-panel"><p class="eyebrow">TODAY</p><h2>Your next action</h2>${action?entryMarkup({id:0,title:action,type:"Action"},"action"):'<p class="empty-state">Add an action from your dashboard and it will appear here.</p>'}</section><section class="progress-panel"><p class="eyebrow">SAVED FOR LATER</p><h2>Saved resources</h2><div class="saved-list">${savedMarkup(memberProgress.saved,"saved")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WINS</p><h2>Completed</h2><div class="saved-list">${savedMarkup(memberProgress.completed,"completed")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WORDS</p><h2>Reflections</h2><div class="saved-list">${savedMarkup(memberProgress.reflections,"reflections")}</div></section></div>`;
   host.querySelectorAll("[data-remove-progress]").forEach(btn=>btn.addEventListener("click",()=>{if(btn.dataset.list==="action")localStorage.removeItem("oyo-today-action");else memberProgress[btn.dataset.list]=memberProgress[btn.dataset.list].filter(i=>i.id!==Number(btn.dataset.removeProgress));saveProgress();renderProgress(host);}));
 }
 function entryMarkup(item,list){return `<div class="saved-entry"><div><small>${item.type.toUpperCase()}</small><strong>${item.title}</strong>${item.note?`<p>${item.note}</p>`:""}</div><button data-remove-progress="${item.id}" data-list="${list}" title="Remove">×</button></div>`;}
@@ -391,24 +395,26 @@ function renderAccount() {
   if(session?.user) {
     accountState.innerHTML=`<p class="account-note">Signed in securely as <strong>${session.user.email}</strong>. Your progress and member access can now follow you across devices.</p>${isAdmin()?'<p class="account-success">Administrator access is active.</p>':'<p class="account-note">Member access is active.</p>'}<button class="outline-button wide" id="signOutButton">Sign out</button>`;
     document.querySelector("#accountTitle").textContent="Your member account";
-    document.querySelector("#signOutButton").addEventListener("click",()=>{signOut();updateAccess();accountBackdrop.hidden=true;showToast("Signed out");renderView("home");});
+    document.querySelector("#signOutButton").addEventListener("click",()=>{signOut();updateAccess();updateMemberIdentity();accountBackdrop.hidden=true;showToast("Signed out");renderView("home");});
   } else {
-    accountState.innerHTML=`<p class="account-note">Sign in to access your coaching from any device.</p><div id="accountMessage"></div><form class="account-form" id="signInForm"><div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required></div><div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="6" required></div><button class="primary-button" type="submit">Sign in <span>→</span></button><button class="text-button" id="createAccount" type="button">Create a new member account</button></form>`;
+    accountState.innerHTML=`<p class="account-note">Sign in to access your coaching from any device.</p><div id="accountMessage"></div><form class="account-form" id="signInForm"><div class="field"><label for="accountName">Your name</label><input id="accountName" type="text" autocomplete="name" placeholder="Needed only when creating an account"></div><div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required></div><div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="6" required></div><button class="primary-button" type="submit">Sign in <span>→</span></button><button class="text-button" id="createAccount" type="button">Create a new member account</button></form>`;
     document.querySelector("#accountTitle").textContent="Sign in to your options";
-    document.querySelector("#signInForm").addEventListener("submit",async event=>{event.preventDefault();setAccountMessage("Signing in…");try{await signIn(document.querySelector("#accountEmail").value,document.querySelector("#accountPassword").value);await refreshUser();updateAccess();showToast("Welcome back");renderAccount();}catch(error){setAccountMessage(friendlyAuthError(error.message),true);}});
-    document.querySelector("#createAccount").addEventListener("click",async()=>{const email=document.querySelector("#accountEmail").value,password=document.querySelector("#accountPassword").value;if(!email||!password)return setAccountMessage("Enter your email and password first.",true);setAccountMessage("Creating your account…");try{await signUp(email,password,"Own Your Options member");setAccountMessage("Account created. Check your email and confirm it before signing in.");}catch(error){setAccountMessage(friendlyAuthError(error.message),true);}});
+    document.querySelector("#signInForm").addEventListener("submit",async event=>{event.preventDefault();setAccountMessage("Signing in…");try{await signIn(document.querySelector("#accountEmail").value,document.querySelector("#accountPassword").value);await refreshUser();updateAccess();updateMemberIdentity();showToast("Welcome back");renderAccount();}catch(error){setAccountMessage(friendlyAuthError(error.message),true);}});
+    document.querySelector("#createAccount").addEventListener("click",async()=>{const name=document.querySelector("#accountName").value.trim(),email=document.querySelector("#accountEmail").value,password=document.querySelector("#accountPassword").value;if(!name)return setAccountMessage("Enter your name first.",true);if(!email||!password)return setAccountMessage("Enter your email and password first.",true);setAccountMessage("Creating your account…");try{await signUp(email,password,name);setAccountMessage("Account created. Check your email and confirm it before signing in.");}catch(error){setAccountMessage(friendlyAuthError(error.message),true);}});
   }
 }
 function setAccountMessage(message,isError=false){const area=document.querySelector("#accountMessage");if(area){area.className=isError?"account-error":"account-success";area.textContent=message;}}
 function friendlyAuthError(message){if(message.toLowerCase().includes("invalid login"))return "The email or password is incorrect, or your email has not been confirmed yet.";if(message.toLowerCase().includes("email not confirmed"))return "Please confirm your email using the message Supabase sent you, then sign in.";return message;}
 function updateAccess(){document.querySelectorAll(".admin-only").forEach(link=>link.hidden=!isAdmin());}
+function updateMemberIdentity(){const session=getSession(),name=session?.user?.user_metadata?.name||session?.user?.email?.split("@")[0]||"";const initials=name?name.split(/\s+/).slice(0,2).map(part=>part[0]).join("").toUpperCase():"YO";welcomeHeading.textContent=name?`Welcome, ${name}.`:"Your journey starts here.";sidebarName.textContent=name||"Your account";sidebarRole.textContent=isAdmin()?"Administrator":"Own Your Options member";sidebarAvatar.textContent=initials;accountButton.textContent=initials;}
 function openAccount(){renderAccount();accountBackdrop.hidden=false;document.body.style.overflow="hidden";}
 accountButton.addEventListener("click",openAccount);
 accountClose.addEventListener("click",()=>accountBackdrop.hidden=true);
 accountBackdrop.addEventListener("click",event=>{if(event.target===accountBackdrop){accountBackdrop.hidden=true;document.body.style.overflow="";}});
 accountClose.addEventListener("click",()=>document.body.style.overflow="");
 updateAccess();
-if(getSession()) refreshUser().then(updateAccess).catch(()=>{signOut();updateAccess();});
+updateMemberIdentity();
+if(getSession()) refreshUser().then(()=>{updateAccess();updateMemberIdentity();}).catch(()=>{signOut();updateAccess();updateMemberIdentity();});
 if(getCloudConfig()) { syncFromCloud().catch(()=>{}); syncQuestionsFromCloud().catch(()=>{}); }
 
 function showMemberApp(view="home") {
