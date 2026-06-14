@@ -23,6 +23,7 @@ const welcomeHeading = document.querySelector("#welcomeHeading");
 const sidebarName = document.querySelector("#sidebarName");
 const sidebarRole = document.querySelector("#sidebarRole");
 const sidebarAvatar = document.querySelector("#sidebarAvatar");
+document.querySelectorAll(".copyright-year").forEach(item=>item.textContent=new Date().getFullYear());
 
 const panels = {
   "action-plan": ["MY ACTION PLAN", "Three choices that move you forward", `<ul class="modal-list"><li><strong>Today</strong><br>Choose one small action and complete it.</li><li><strong>This week</strong><br>Finish your options brainstorm.</li><li><strong>Next call</strong><br>Bring one decision you want support with.</li></ul>`],
