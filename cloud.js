@@ -66,6 +66,17 @@ export async function refreshUser() {
   return user;
 }
 
+export async function updateUserName(name) {
+  const user = await request("/auth/v1/user", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data: { name } })
+  }, true);
+  const session = getSession();
+  if (session && user) localStorage.setItem(sessionKey, JSON.stringify({ ...session, user }));
+  return user;
+}
+
 export async function signUp(email, password, name) {
   return request("/auth/v1/signup", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, data: { name } })

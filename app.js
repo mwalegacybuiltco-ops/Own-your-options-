@@ -1,4 +1,4 @@
-import { getCloudConfig, saveCloudConfig, clearCloudConfig, getSession, isAdmin, refreshUser, testConnection, signIn, signUp, signOut, fetchContent, upsertContent, removeContent, uploadFile, createFileLink, fetchQuestions, upsertQuestion, removeQuestion, saveAssessmentResult } from "./cloud.js?v=6";
+import { getCloudConfig, saveCloudConfig, clearCloudConfig, getSession, isAdmin, refreshUser, updateUserName, testConnection, signIn, signUp, signOut, fetchContent, upsertContent, removeContent, uploadFile, createFileLink, fetchQuestions, upsertQuestion, removeQuestion, saveAssessmentResult } from "./cloud.js?v=13";
 
 const continueButton = document.querySelector("#continueButton");
 const toast = document.querySelector("#toast");
@@ -23,6 +23,7 @@ const welcomeHeading = document.querySelector("#welcomeHeading");
 const sidebarName = document.querySelector("#sidebarName");
 const sidebarRole = document.querySelector("#sidebarRole");
 const sidebarAvatar = document.querySelector("#sidebarAvatar");
+const sidebarAccountButton = document.querySelector("#sidebarAccountButton");
 document.querySelectorAll(".copyright-year").forEach(item=>item.textContent=new Date().getFullYear());
 
 const panels = {
@@ -394,8 +395,10 @@ menuButton.addEventListener("click", () => sidebar.classList.toggle("open"));
 function renderAccount() {
   const session=getSession();
   if(session?.user) {
-    accountState.innerHTML=`<p class="account-note">Signed in securely as <strong>${session.user.email}</strong>. Your progress and member access can now follow you across devices.</p>${isAdmin()?'<p class="account-success">Administrator access is active.</p>':'<p class="account-note">Member access is active.</p>'}<button class="outline-button wide" id="signOutButton">Sign out</button>`;
+    const currentName=session.user.user_metadata?.name||"";
+    accountState.innerHTML=`<p class="account-note">Signed in securely as <strong>${session.user.email}</strong>. Your progress and member access can now follow you across devices.</p>${isAdmin()?'<p class="account-success">Administrator access is active.</p>':'<p class="account-note">Member access is active.</p>'}<form class="account-form" id="profileNameForm"><div class="field"><label for="profileName">Display name</label><input id="profileName" type="text" autocomplete="name" value="${escapeAttribute(currentName)}" placeholder="Enter the name shown in your app" required></div><button class="primary-button" type="submit">Save my name <span>→</span></button></form><button class="outline-button wide" id="signOutButton">Sign out</button>`;
     document.querySelector("#accountTitle").textContent="Your member account";
+    document.querySelector("#profileNameForm").addEventListener("submit",async event=>{event.preventDefault();const name=document.querySelector("#profileName").value.trim();if(!name)return;try{await updateUserName(name);updateMemberIdentity();showToast("Name and initials updated");renderAccount();}catch(error){showToast(error.message);}});
     document.querySelector("#signOutButton").addEventListener("click",()=>{signOut();updateAccess();updateMemberIdentity();accountBackdrop.hidden=true;showToast("Signed out");renderView("home");});
   } else {
     accountState.innerHTML=`<p class="account-note">Sign in to access your coaching from any device.</p><div id="accountMessage"></div><form class="account-form" id="signInForm"><div class="field"><label for="accountName">Your name</label><input id="accountName" type="text" autocomplete="name" placeholder="Needed only when creating an account"></div><div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required></div><div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="6" required></div><button class="primary-button" type="submit">Sign in <span>→</span></button><button class="text-button" id="createAccount" type="button">Create a new member account</button></form>`;
@@ -407,9 +410,11 @@ function renderAccount() {
 function setAccountMessage(message,isError=false){const area=document.querySelector("#accountMessage");if(area){area.className=isError?"account-error":"account-success";area.textContent=message;}}
 function friendlyAuthError(message){if(message.toLowerCase().includes("invalid login"))return "The email or password is incorrect, or your email has not been confirmed yet.";if(message.toLowerCase().includes("email not confirmed"))return "Please confirm your email using the message Supabase sent you, then sign in.";return message;}
 function updateAccess(){document.querySelectorAll(".admin-only").forEach(link=>link.hidden=!isAdmin());}
-function updateMemberIdentity(){const session=getSession(),name=session?.user?.user_metadata?.name||session?.user?.email?.split("@")[0]||"";const initials=name?name.split(/\s+/).slice(0,2).map(part=>part[0]).join("").toUpperCase():"YO";welcomeHeading.textContent=name?`Welcome, ${name}.`:"Your journey starts here.";sidebarName.textContent=name||"Your account";sidebarRole.textContent=isAdmin()?"Administrator":"Own Your Options member";sidebarAvatar.textContent=initials;accountButton.textContent=initials;}
+function escapeAttribute(value){return String(value).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function updateMemberIdentity(){const session=getSession(),savedName=session?.user?.user_metadata?.name?.trim()||"",emailName=session?.user?.email?.split("@")[0]?.replace(/[._-]+/g," ")||"",name=savedName||emailName;const initials=name?name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase():"YO";welcomeHeading.textContent=session?.user?`Welcome, ${name||"member"}.`:"Your journey starts here.";sidebarName.textContent=session?.user?(name||"Own Your Options member"):"Your account";sidebarRole.textContent=isAdmin()?"Administrator":"Own Your Options member";sidebarAvatar.textContent=initials;accountButton.textContent=initials;}
 function openAccount(){renderAccount();accountBackdrop.hidden=false;document.body.style.overflow="hidden";}
 accountButton.addEventListener("click",openAccount);
+sidebarAccountButton.addEventListener("click",openAccount);
 accountClose.addEventListener("click",()=>accountBackdrop.hidden=true);
 accountBackdrop.addEventListener("click",event=>{if(event.target===accountBackdrop){accountBackdrop.hidden=true;document.body.style.overflow="";}});
 accountClose.addEventListener("click",()=>document.body.style.overflow="");
