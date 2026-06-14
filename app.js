@@ -13,6 +13,8 @@ const modalContent = document.querySelector("#modalContent");
 const modalAction = document.querySelector("#modalAction");
 const menuButton = document.querySelector("#menuButton");
 const sidebar = document.querySelector(".sidebar");
+const landingPage = document.querySelector("#landingPage");
+const appShell = document.querySelector("#appShell");
 const accountButton = document.querySelector("#accountButton");
 const accountBackdrop = document.querySelector("#accountBackdrop");
 const accountClose = document.querySelector("#accountClose");
@@ -36,6 +38,11 @@ const panels = {
 };
 
 const views = {
+  offers: {
+    eyebrow: "OFFERS & SHOP", title: "Choose your next step", copy: "Purchase coaching, book a private session, or choose a digital tool that helps you create more options.",
+    tabs: ["All", "Group coaching", "Digital product", "1:1 coaching"],
+    cards: [["✦","GROUP COACHING","Own Your Options group program","A guided twelve-week coaching experience."],["▤","DIGITAL PRODUCT","Own Your Options workbook","A practical self-guided workbook for creating your plan."],["♡","1:1 COACHING","Private coaching session","Personalized clarity, support, and a customized action plan."]]
+  },
   philosophy: {
     eyebrow: "PHILOSOPHY LIBRARY", title: "Ideas that create freedom", copy: "Short, practical lessons for shifting how you see responsibility, possibility, family, and freedom.",
     tabs: ["All", "Mindset", "Freedom", "Growth"],
@@ -55,6 +62,11 @@ const views = {
     eyebrow: "WORKBOOKS & TOOLS", title: "Turn insight into action", copy: "Guided worksheets, planners, exercises, and complete workbooks that help members create and follow their plan.",
     tabs: ["All", "Workbooks", "Worksheets", "Planners", "Exercises"],
     cards: [["▤","WORKBOOKS","Own Your Options workbook","Move through the complete five-step framework."],["✓","WORKSHEETS","Options brainstorm","Discover choices and opportunities you may have missed."],["□","PLANNERS","Weekly freedom planner","Choose your priorities and protect time for action."],["◇","EXERCISES","Reality check-in","Get honest and clear about where you are right now."],["◎","WORKSHEETS","Confidence builder","Collect evidence that you can create change."],["→","PLANNERS","90-day options plan","Turn your next chapter into clear weekly actions."]]
+  },
+  lwa: {
+    eyebrow: "LWA BUSINESS", title: "Business, income, and legacy", copy: "Explore April’s LWA business, practical income opportunities, business resources, and ways to build a lasting legacy.",
+    tabs: ["All", "Offers", "Business tools", "Stories", "Get started"],
+    cards: [["↗","OFFERS","Explore LWA","Discover the LWA business and available opportunities."],["□","BUSINESS TOOLS","LWA resource library","Tools and guidance for building with intention."],["◎","STORIES","Why I chose LWA","April’s story, lessons, and vision for the business."],["✓","GET STARTED","Your first step","Learn what to do if LWA feels like an option for you."],["♡","COMMUNITY","Connect with April","Ask questions and explore the possibilities together."],["✦","OFFERS","Build income options","Create another path toward income and freedom."]]
   },
   community: {
     eyebrow: "THE COLLECTIVE", title: "You don’t have to do this alone", copy: "Connect with people creating options, taking responsibility, and building freedom one choice at a time.",
@@ -94,6 +106,7 @@ const starterQuestions = [
 let assessmentQuestions=JSON.parse(localStorage.getItem("oyo-assessment-questions")||"null")||starterQuestions;
 let assessmentAnswers={};
 let currentQuestion=0;
+let memberProgress=JSON.parse(localStorage.getItem("oyo-member-progress")||"null")||{completed:[],saved:[],reflections:[]};
 
 const starterContent = [
   { id: 1, type: "Coaching lesson", library: "coaching", title: "Overcoming overwhelm", description: "Turn an overloaded mind into one clear decision.", format: "Video", status: "Published" },
@@ -121,6 +134,7 @@ saveAction.addEventListener("click", () => {
   }
   localStorage.setItem("oyo-today-action", actionInput.value.trim());
   successMessage.classList.add("show");
+  completeItem(actionInput.value.trim(),"Action");
   showToast("Your action is saved");
 });
 
@@ -151,6 +165,9 @@ function renderView(key) {
     openAccount();
     return;
   }
+  if (key === "progress") {
+    home.hidden=true;host.hidden=false;renderProgress(host);window.scrollTo({top:0,behavior:"smooth"});return;
+  }
   if (key === "home") {
     host.hidden = true;
     home.hidden = false;
@@ -168,13 +185,30 @@ function renderView(key) {
   } else {
     const view = views[key] || views.philosophy;
     const custom = adminContent.filter(item => item.library === key && item.status === "Published");
-    host.innerHTML = `<section class="view-hero"><div><p class="eyebrow">${view.eyebrow}</p><h1>${view.title}</h1><p>${view.copy}</p></div></section><div class="view-tabs">${view.tabs.map((t,i)=>`<button class="${i===0?"active":""}" data-filter="${t}">${t}</button>`).join("")}</div><div class="view-grid">${custom.map(c=>`<button class="feature-card" data-category="${c.type}" data-content-id="${c.id}"><span class="card-mark">✦</span><small>${c.type.toUpperCase()} · ${c.format.toUpperCase()}</small><strong>${c.title}</strong><p>${c.description}</p><b>Open →</b></button>`).join("")}${view.cards.map(c=>`<button class="feature-card" data-category="${c[1]}" data-open="generic-card"><span class="card-mark">${c[0]}</span><small>${c[1]}</small><strong>${c[2]}</strong><p>${c[3]}</p><b>Open →</b></button>`).join("")}</div><p class="empty-filter" hidden>No items have been added to this category yet.</p>`;
+    host.innerHTML = `<section class="view-hero"><div><p class="eyebrow">${view.eyebrow}</p><h1>${view.title}</h1><p>${view.copy}</p></div></section><div class="view-tabs">${view.tabs.map((t,i)=>`<button class="${i===0?"active":""}" data-filter="${t}">${t}</button>`).join("")}</div><div class="view-grid">${custom.map(c=>`<button class="feature-card" data-category="${c.type}" data-content-id="${c.id}" data-save-title="${c.title}" data-save-type="${c.type}"><span class="card-mark">${c.payment_url?"$":"✦"}</span><small>${c.type.toUpperCase()} · ${c.format.toUpperCase()}</small><strong>${c.title}</strong>${c.price?`<span class="price-tag">${c.price}</span>`:""}<p>${c.description}</p><b>${c.payment_url?"View offer →":"Open →"}</b></button>`).join("")}${view.cards.map(c=>`<button class="feature-card" data-category="${c[1]}" data-open="generic-card" data-save-title="${c[2]}" data-save-type="${c[1]}"><span class="card-mark">${c[0]}</span><small>${c[1]}</small><strong>${c[2]}</strong><p>${c[3]}</p><b>Open →</b></button>`).join("")}</div><p class="empty-filter" hidden>No items have been added to this category yet.</p>`;
   }
-  host.querySelectorAll("[data-open]").forEach(el => el.addEventListener("click",()=>openPanel(el.dataset.open)));
+  host.querySelectorAll("[data-open]").forEach(el => el.addEventListener("click",()=>{
+    if(el.dataset.saveTitle) {
+      panels["selected-card"]=[el.dataset.saveType,el.dataset.saveTitle,"<p>Open this item, return to it later, or mark it complete when you are ready.</p>"];
+      openPanel("selected-card");
+    } else openPanel(el.dataset.open);
+  }));
   host.querySelectorAll("[data-content-id]").forEach(el => el.addEventListener("click",()=>openPublishedContent(Number(el.dataset.contentId))));
+  host.querySelectorAll("[data-save-title]").forEach(el=>el.addEventListener("contextmenu",event=>{event.preventDefault();saveItem(el.dataset.saveTitle,el.dataset.saveType);}));
   bindViewTabs(host);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+function renderProgress(host) {
+  const result=JSON.parse(localStorage.getItem("oyo-assessment-result")||"null"), action=localStorage.getItem("oyo-today-action")||"";
+  host.innerHTML=`<section class="view-hero"><div><p class="eyebrow">MY PROGRESS</p><h1>Your choices are adding up</h1><p>Return to what you saved, notice what you completed, and choose the next small action.</p></div>${result?`<div class="metric-ring"><div><strong>${result.overall}</strong><small>OPTIONS SCORE</small></div></div>`:""}</section><div class="progress-overview"><article class="progress-stat"><small>COMPLETED</small><strong>${memberProgress.completed.length}</strong> <span>items</span></article><article class="progress-stat"><small>SAVED</small><strong>${memberProgress.saved.length}</strong> <span>for later</span></article><article class="progress-stat"><small>REFLECTIONS</small><strong>${memberProgress.reflections.length}</strong> <span>written</span></article><article class="progress-stat"><small>JOURNEY</small><strong>38%</strong></article></div><div class="progress-sections"><section class="progress-panel"><p class="eyebrow">TODAY</p><h2>Your next action</h2>${action?entryMarkup({id:0,title:action,type:"Action"},"action"):'<p class="empty-state">Add an action from your dashboard and it will appear here.</p>'}</section><section class="progress-panel"><p class="eyebrow">SAVED FOR LATER</p><h2>Saved resources</h2><div class="saved-list">${savedMarkup(memberProgress.saved,"saved")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WINS</p><h2>Completed</h2><div class="saved-list">${savedMarkup(memberProgress.completed,"completed")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WORDS</p><h2>Reflections</h2><div class="saved-list">${savedMarkup(memberProgress.reflections,"reflections")}</div></section></div>`;
+  host.querySelectorAll("[data-remove-progress]").forEach(btn=>btn.addEventListener("click",()=>{if(btn.dataset.list==="action")localStorage.removeItem("oyo-today-action");else memberProgress[btn.dataset.list]=memberProgress[btn.dataset.list].filter(i=>i.id!==Number(btn.dataset.removeProgress));saveProgress();renderProgress(host);}));
+}
+function entryMarkup(item,list){return `<div class="saved-entry"><div><small>${item.type.toUpperCase()}</small><strong>${item.title}</strong>${item.note?`<p>${item.note}</p>`:""}</div><button data-remove-progress="${item.id}" data-list="${list}" title="Remove">×</button></div>`;}
+function savedMarkup(items,list){return items.length?items.map(item=>entryMarkup(item,list)).join(""):'<p class="empty-state">Nothing here yet. Your saved work will appear here.</p>';}
+function saveProgress(){localStorage.setItem("oyo-member-progress",JSON.stringify(memberProgress));}
+function saveItem(title,type){if(memberProgress.saved.some(item=>item.title===title))return showToast("Already saved");memberProgress.saved.unshift({id:Date.now(),title,type});saveProgress();showToast("Saved to My Progress");}
+function completeItem(title,type,note=""){if(!memberProgress.completed.some(item=>item.title===title))memberProgress.completed.unshift({id:Date.now(),title,type,note});saveProgress();}
 
 function bindViewTabs(host) {
   const tabs=host.querySelectorAll("[data-filter]");
@@ -239,10 +273,11 @@ function renderAdmin(host) {
   <div class="admin-layout">
     <section class="admin-panel"><p class="eyebrow">CONTENT EDITOR</p><h2 id="editorTitle">Add new content</h2>
       <form class="admin-form" id="contentForm">
-        <div class="field-row"><div class="field"><label for="contentType">Content type</label><select id="contentType"><option>Coaching lesson</option><option>Resource</option><option>Story</option><option>Live call</option><option>Daily mindset</option><option>Workbook</option><option>Worksheet</option><option>Planner</option><option>Exercise</option></select></div><div class="field"><label for="contentLibrary">Member library</label><select id="contentLibrary"><option value="coaching">Coaching hub</option><option value="resources">Resource vault</option><option value="workbooks">Workbooks & tools</option><option value="stories">Story library</option><option value="philosophy">Philosophy library</option><option value="community">Community</option></select></div></div>
+        <div class="field-row"><div class="field"><label for="contentType">Content type</label><select id="contentType"><option>Coaching lesson</option><option>Group coaching</option><option>Digital product</option><option>1:1 coaching</option><option>Resource</option><option>Story</option><option>Live call</option><option>Daily mindset</option><option>Workbook</option><option>Worksheet</option><option>Planner</option><option>Exercise</option><option>LWA offer</option><option>LWA business tool</option></select></div><div class="field"><label for="contentLibrary">Member library</label><select id="contentLibrary"><option value="offers">Offers & shop</option><option value="coaching">Coaching hub</option><option value="resources">Resource vault</option><option value="workbooks">Workbooks & tools</option><option value="lwa">LWA Business</option><option value="stories">Story library</option><option value="philosophy">Philosophy library</option><option value="community">Community</option></select></div></div>
         <div class="field"><label for="contentTitle">Title</label><input id="contentTitle" required placeholder="Example: Creating income options"></div>
         <div class="field"><label for="contentDescription">Description</label><textarea id="contentDescription" required placeholder="What will members learn or receive?"></textarea></div>
         <div class="field-row"><div class="field"><label for="contentFormat">Format</label><select id="contentFormat"><option>Video</option><option>Audio</option><option>Article</option><option>PDF</option><option>Live session</option><option>Worksheet</option></select></div><div class="field"><label for="contentStatus">Status</label><select id="contentStatus"><option>Published</option><option>Draft</option></select></div></div>
+        <div class="field-row"><div class="field"><label for="contentPrice">Display price</label><input id="contentPrice" placeholder="Example: $97 or $997"></div><div class="field"><label for="paymentUrl">Payment or booking link</label><input id="paymentUrl" type="url" placeholder="https://buy.stripe.com/..."></div></div>
         <label class="upload-zone">Attach video, audio, PDF, or workbook<br><input id="contentFile" type="file" accept="video/*,audio/*,.pdf,.doc,.docx"></label>
         <div class="admin-buttons"><button class="primary-button" type="submit">Publish content <span>→</span></button><button class="outline-button" id="cancelEdit" type="button">Clear</button></div>
       </form>
@@ -278,6 +313,7 @@ function bindAdmin() {
       id: editingId || Date.now(), type: document.querySelector("#contentType").value, library: document.querySelector("#contentLibrary").value,
       title: document.querySelector("#contentTitle").value.trim(), description: document.querySelector("#contentDescription").value.trim(),
       format: document.querySelector("#contentFormat").value, status: document.querySelector("#contentStatus").value,
+      price: document.querySelector("#contentPrice").value.trim(), payment_url: document.querySelector("#paymentUrl").value.trim(),
       fileName, file_url: fileUrl
     };
     if (editingId) adminContent = adminContent.map(existing => existing.id === editingId ? item : existing);
@@ -293,12 +329,12 @@ function bindAdmin() {
 
 function editContent(id) {
   const item = adminContent.find(entry => entry.id === id); if (!item) return; editingId = id;
-  document.querySelector("#contentType").value=item.type; document.querySelector("#contentLibrary").value=item.library; document.querySelector("#contentTitle").value=item.title; document.querySelector("#contentDescription").value=item.description; document.querySelector("#contentFormat").value=item.format; document.querySelector("#contentStatus").value=item.status; document.querySelector("#editorTitle").textContent="Edit content"; window.scrollTo({top:0,behavior:"smooth"});
+  document.querySelector("#contentType").value=item.type; document.querySelector("#contentLibrary").value=item.library; document.querySelector("#contentTitle").value=item.title; document.querySelector("#contentDescription").value=item.description; document.querySelector("#contentFormat").value=item.format; document.querySelector("#contentStatus").value=item.status; document.querySelector("#contentPrice").value=item.price||""; document.querySelector("#paymentUrl").value=item.payment_url||""; document.querySelector("#editorTitle").textContent="Edit content"; window.scrollTo({top:0,behavior:"smooth"});
 }
 async function deleteContent(id) { adminContent = adminContent.filter(item=>item.id!==id); saveAdminContent(); if(getCloudConfig()) { try{await removeContent(id);}catch(error){showToast(`Deleted locally. Cloud: ${error.message}`);} } window.refreshAdminList(); showToast("Content deleted"); }
 function saveAdminContent() { localStorage.setItem("oyo-admin-content", JSON.stringify(adminContent)); }
-async function openPublishedContent(id) { const item=adminContent.find(entry=>entry.id===id); if(!item)return; let fileLink=""; if(item.file_url&&getSession())try{fileLink=await createFileLink(item.file_url);}catch(error){showToast(error.message);} panels["published"]=[`${item.type.toUpperCase()} · ${item.format.toUpperCase()}`,item.title,`<p>${item.description}</p>${item.fileName?`<p><strong>Attached:</strong> ${item.fileName}</p>`:""}${fileLink?`<p><a href="${fileLink}" target="_blank">Open attached file →</a></p>`:item.file_url?`<p>Sign in to open this private attachment.</p>`:""}`]; openPanel("published"); }
-async function syncFromCloud(){ if(!getCloudConfig())return; const remote=await fetchContent(); if(Array.isArray(remote)){adminContent=remote;saveAdminContent();} }
+async function openPublishedContent(id) { const item=adminContent.find(entry=>entry.id===id); if(!item)return; let fileLink=""; if(item.file_url&&getSession())try{fileLink=await createFileLink(item.file_url);}catch(error){showToast(error.message);} panels["published"]=[`${item.type.toUpperCase()} · ${item.format.toUpperCase()}`,item.title,`${item.price?`<span class="price-tag">${item.price}</span>`:""}<p>${item.description}</p>${item.payment_url?`<a class="primary-button purchase-button" href="${item.payment_url}" target="_blank" rel="noopener">Purchase or book securely →</a>`:""}${item.fileName?`<p><strong>Attached:</strong> ${item.fileName}</p>`:""}${fileLink?`<p><a href="${fileLink}" target="_blank">Open attached file →</a></p>`:item.file_url?`<p>Sign in to open this private attachment.</p>`:""}`]; openPanel("published"); }
+async function syncFromCloud(){ if(!getCloudConfig())return; const remote=await fetchContent(); if(Array.isArray(remote)){const byId=new Map(adminContent.map(item=>[String(item.id),item]));remote.forEach(item=>byId.set(String(item.id),item));adminContent=[...byId.values()];saveAdminContent();} }
 async function syncQuestionsFromCloud(){ if(!getCloudConfig()||!getSession())return; const remote=await fetchQuestions(); if(Array.isArray(remote)&&remote.length){assessmentQuestions=remote;saveQuestions();} }
 
 panels["generic-card"] = ["OWN YOUR OPTIONS", "Your next choice", "<p>This lesson is ready for your full coaching content, video, audio, worksheets, and member reflections.</p><p><strong>The next build step:</strong> connect your real program material and member accounts.</p>"];
@@ -309,7 +345,10 @@ function openPanel(key) {
   if (!panel) return;
   modalEyebrow.textContent = panel[0];
   modalTitle.textContent = panel[1];
-  modalContent.innerHTML = panel[2];
+  modalContent.innerHTML = `${panel[2]}<button class="outline-button wide save-for-later" type="button">Save for later ＋</button>`;
+  modalContent.querySelector(".save-for-later").addEventListener("click",()=>saveItem(panel[1],panel[0]));
+  modalAction.textContent = key==="reflection" ? "Save reflection ✓" : "Save to My Progress ✓";
+  modalAction.dataset.panelKey=key;
   modalBackdrop.hidden = false;
   document.body.style.overflow = "hidden";
   modalClose.focus();
@@ -329,8 +368,15 @@ document.querySelectorAll("[data-open]").forEach((control) => {
 
 modalClose.addEventListener("click", closePanel);
 modalAction.addEventListener("click", () => {
+  const note=modalContent.querySelector("textarea")?.value.trim()||"";
+  if(modalAction.dataset.panelKey==="reflection" && note) {
+    memberProgress.reflections.unshift({id:Date.now(),title:"Weekly reflection",type:"Reflection",note});
+    saveProgress();
+  } else {
+    completeItem(modalTitle.textContent,modalEyebrow.textContent,note);
+  }
   closePanel();
-  showToast("Progress saved");
+  showToast("Saved to My Progress");
 });
 modalBackdrop.addEventListener("click", (event) => {
   if (event.target === modalBackdrop) closePanel();
@@ -364,3 +410,16 @@ accountClose.addEventListener("click",()=>document.body.style.overflow="");
 updateAccess();
 if(getSession()) refreshUser().then(updateAccess).catch(()=>{signOut();updateAccess();});
 if(getCloudConfig()) { syncFromCloud().catch(()=>{}); syncQuestionsFromCloud().catch(()=>{}); }
+
+function showMemberApp(view="home") {
+  landingPage.hidden=true;appShell.hidden=false;
+  document.querySelectorAll(".nav-link").forEach(link=>link.classList.toggle("active",link.dataset.view===view));
+  renderView(view);window.scrollTo({top:0});
+}
+function showLanding(){appShell.hidden=true;landingPage.hidden=false;window.scrollTo({top:0});}
+document.querySelector("#enterApp").addEventListener("click",()=>showMemberApp("home"));
+document.querySelectorAll(".landing-enter").forEach(button=>button.addEventListener("click",()=>showMemberApp("coaching")));
+document.querySelectorAll(".landing-offer-link").forEach(button=>button.addEventListener("click",()=>showMemberApp("offers")));
+document.querySelector("#openLwa").addEventListener("click",()=>showMemberApp("lwa"));
+document.querySelector("#landingSignIn").addEventListener("click",()=>{showMemberApp("home");openAccount();});
+document.querySelector(".brand").addEventListener("click",event=>{event.preventDefault();showLanding();});

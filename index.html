@@ -11,7 +11,57 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-shell">
+  <div class="landing-page" id="landingPage">
+    <header class="landing-nav">
+      <a class="landing-brand" href="#landingPage"><span class="brand-mark" aria-hidden="true"><b>O</b><i>Y</i><b>O</b></span><span><strong>OWN YOUR OPTIONS</strong><small>BY APRIL LUNGAL</small></span></a>
+      <nav aria-label="Landing navigation">
+        <a href="#landingFramework">Framework</a>
+        <a href="#landingOffers">Coaching</a>
+        <a href="#landingLwa">LWA Business</a>
+      </nav>
+      <button class="outline-button" id="landingSignIn">Member sign in</button>
+    </header>
+    <main class="landing-main">
+      <section class="landing-hero">
+        <img src="assets/brand-board.png" alt="April Lungal, Own Your Options coach">
+        <div class="landing-overlay"></div>
+        <div class="landing-hero-copy">
+          <p class="eyebrow gold">RESPONSIBILITY · FAMILY · FREEDOM</p>
+          <h1>Own your <em>options.</em></h1>
+          <p>A practical coaching system for Gen X men and women ready to create more confidence, income, freedom, and fulfillment.</p>
+          <div class="landing-actions">
+            <button class="primary-button" id="enterApp">Explore the member app <span>→</span></button>
+            <a class="outline-button landing-link" href="#landingOffers">See coaching options</a>
+          </div>
+        </div>
+      </section>
+      <section class="landing-band" id="landingFramework">
+        <div class="landing-section-heading"><p class="eyebrow">THE OWN YOUR OPTIONS FRAMEWORK</p><h2>One choice can change the direction.</h2><p>Move from feeling stuck to building a life with more choices, intention, and freedom.</p></div>
+        <div class="landing-steps">
+          <article><b>1</b><strong>Own your reality</strong><p>Get clear on where you are right now.</p></article>
+          <article><b>2</b><strong>Define your future</strong><p>Create a vision for the life you want.</p></article>
+          <article><b>3</b><strong>Create more options</strong><p>Discover new paths, skills, and income.</p></article>
+          <article><b>4</b><strong>Implement with intention</strong><p>Build momentum through consistent action.</p></article>
+          <article><b>5</b><strong>Build freedom</strong><p>Design a life with more time and choice.</p></article>
+        </div>
+      </section>
+      <section class="landing-band landing-offers" id="landingOffers">
+        <div class="landing-section-heading"><p class="eyebrow">COACHING & SUPPORT</p><h2>Choose the support that fits your next chapter.</h2></div>
+        <div class="landing-offer-grid">
+          <article><span>01</span><h3>Group coaching</h3><p>A guided twelve-week transformation with weekly calls, practical tools, and community support.</p><button class="text-button landing-offer-link">View group coaching →</button></article>
+          <article><span>02</span><h3>Digital products</h3><p>Workbooks, planners, and practical tools you can purchase and use at your own pace.</p><button class="text-button landing-offer-link">Browse digital products →</button></article>
+          <article><span>03</span><h3>Private coaching</h3><p>Personalized clarity and a plan built around your life, priorities, and possibilities.</p><button class="text-button landing-offer-link">View private coaching →</button></article>
+        </div>
+      </section>
+      <section class="landing-band landing-lwa" id="landingLwa">
+        <div><p class="eyebrow gold">LWA BUSINESS</p><h2>Business, income, and legacy.</h2><p>A dedicated place for April’s LWA business, offers, tools, and opportunities. Explore practical ways to create more income options and build something meaningful.</p><button class="primary-button" id="openLwa">Explore LWA Business <span>→</span></button></div>
+        <blockquote>“Your options. Your life. Your legacy.”<small>April Lungal</small></blockquote>
+      </section>
+      <footer class="landing-footer"><strong>OWN YOUR OPTIONS</strong><span>Responsibility. Family. Freedom.</span><button class="text-button landing-enter">Open member app →</button></footer>
+    </main>
+  </div>
+
+  <div class="app-shell" id="appShell" hidden>
     <aside class="sidebar">
       <a class="brand" href="#" aria-label="Own Your Options home">
         <span class="brand-mark" aria-hidden="true"><b>O</b><i>Y</i><b>O</b></span>
@@ -20,6 +70,8 @@
 
       <nav aria-label="Main navigation">
         <a class="nav-link active" href="#home" data-view="home"><span>⌂</span> Dashboard</a>
+        <a class="nav-link" href="#progress" data-view="progress"><span>✓</span> My progress</a>
+        <a class="nav-link" href="#offers" data-view="offers"><span>$</span> Offers & shop</a>
         <a class="nav-link" href="#philosophy" data-view="philosophy"><span>◇</span> Philosophy library</a>
         <a class="nav-link" href="#assessment" data-view="assessment"><span>◎</span> Assessment</a>
         <a class="nav-link" href="#plan" data-view="plan"><span>✓</span> Action plan</a>
@@ -27,6 +79,7 @@
         <a class="nav-link" href="#community" data-view="community"><span>◌</span> Community</a>
         <a class="nav-link" href="#resources" data-view="resources"><span>□</span> Resource vault</a>
         <a class="nav-link" href="#workbooks" data-view="workbooks"><span>▤</span> Workbooks & tools</a>
+        <a class="nav-link" href="#lwa" data-view="lwa"><span>↗</span> LWA Business</a>
         <a class="nav-link" href="#coaching" data-view="coaching"><span>✦</span> Coaching hub</a>
         <a class="nav-link admin-link admin-only" href="#admin" data-view="admin" hidden><span>⚙</span> April admin</a>
         <a class="nav-link admin-only" href="#assessment-builder" data-view="assessment-builder" hidden><span>＋</span> Assessment builder</a>
@@ -164,6 +217,6 @@
       <div id="accountState"></div>
     </section>
   </div>
-  <script type="module" src="app.js?v=6"></script>
+  <script type="module" src="app.js?v=9"></script>
 </body>
 </html>
