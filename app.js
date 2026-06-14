@@ -46,22 +46,22 @@ const panels = {
 const views = {
   offers: {
     eyebrow: "OFFERS & SHOP", title: "Choose your next step", copy: "Purchase coaching, book a private session, or choose a digital tool that helps you create more options.",
-    tabs: ["All", "Group coaching", "Digital product", "1:1 coaching"],
+    tabs: ["All", "Group coaching", "Digital products", "1:1 coaching", "Memberships"],
     cards: [["✦","GROUP COACHING","Own Your Options group program","A guided twelve-week coaching experience."],["▤","DIGITAL PRODUCT","Own Your Options workbook","A practical self-guided workbook for creating your plan."],["♡","1:1 COACHING","Private coaching session","Personalized clarity, support, and a customized action plan."]]
   },
   philosophy: {
     eyebrow: "PHILOSOPHY LIBRARY", title: "Ideas that create freedom", copy: "Short, practical lessons for shifting how you see responsibility, possibility, family, and freedom.",
-    tabs: ["All", "Mindset", "Freedom", "Growth"],
+    tabs: ["All", "Mindset", "Responsibility", "Options", "Freedom", "Growth"],
     cards: [["◇","RESPONSIBILITY","Responsibility creates options","Find the power available inside your current reality."],["◎","OPTIONS","Create freedom","Learn why choices grow when you stop waiting for certainty."],["♡","FAMILY","Freedom creates legacy","Build choices that support the people and life you value."],["✦","CONFIDENCE","You are always one decision away","Confidence is built after action, not before it."],["✓","CLARITY","Clarity comes before confidence","Name what matters and make the next choice easier."],["→","GROWTH","Live by choice","Move from reacting to intentionally designing your life."]]
   },
   stories: {
     eyebrow: "STORY LIBRARY", title: "Real stories. More possibilities.", copy: "Stories from people who changed direction, rebuilt confidence, and created a life on their own terms.",
-    tabs: ["All", "Starting over", "Family", "Business"],
+    tabs: ["All", "Starting over", "Family", "Business", "Freedom", "Member stories"],
     cards: [["01","STARTING OVER","When you feel stuck","The moment that changed everything."],["02","BUSINESS","Raising five kids","A lesson in building income without burning out."],["03","FAMILY","Caregiving","How a hard season revealed a new direction."],["04","GROWTH","Building options later in life","It is never too late to choose again."],["05","FREEDOM","Freedom by design","A practical path from overwhelm to agency."],["06","CONFIDENCE","Starting before confidence","Why imperfect action worked."]]
   },
   resources: {
     eyebrow: "RESOURCE VAULT", title: "Tools I personally use", copy: "A curated library to help members create more options in work, money, organization, and personal growth.",
-    tabs: ["Recommended", "Business", "AI tools", "Organization"],
+    tabs: ["All", "Recommended", "Business", "AI tools", "Content creation", "Organization", "Books"],
     cards: [["↗","BUSINESS","Income option planner","Map an idea into a realistic first offer."],["✦","AI TOOLS","AI starter guide","Use AI to save time and make ideas easier to act on."],["✓","ORGANIZATION","Weekly freedom planner","Protect time for the choices that matter."],["□","CONTENT","Simple content system","Share your work without living online."],["◎","BOOKS","April’s reading list","Books that changed how I think about choice."],["♡","WELLBEING","Energy check-in","Build plans that respect your real capacity."]]
   },
   workbooks: {
@@ -76,20 +76,22 @@ const views = {
   },
   community: {
     eyebrow: "THE COLLECTIVE", title: "You don’t have to do this alone", copy: "Connect with people creating options, taking responsibility, and building freedom one choice at a time.",
-    tabs: ["All", "Facebook group", "Live calls", "Challenges"],
+    tabs: ["All", "Facebook group", "Live calls", "Challenges", "Wins", "Q&A", "Accountability"],
     cards: [["♡","CELEBRATE","Wins & wins","Share something you chose, changed, or completed."],["◎","CONNECT","Ask the community","Get perspective from people who understand."],["✓","CHALLENGE","Seven days of options","Take one small action every day this week."],["✦","LIVE COACHING","Join this week’s call","Bring a question and leave with a next step."],["◇","ACCOUNTABILITY","Find a partner","Stay consistent with someone beside you."],["→","WELCOME","Introduce yourself","Tell the collective what you are creating."]]
   },
   coaching: {
     eyebrow: "COACHING HUB", title: "Support when you need it", copy: "Access group coaching, workshops, replays, workbooks, and direct guidance from April.",
-    tabs: ["Upcoming", "Replays", "Workbooks"],
+    tabs: ["All", "Upcoming calls", "Call replays", "Trainings", "Workshops", "Workbooks", "Q&A library"],
     cards: [["17","UPCOMING LIVE CALL","Group coaching call","Wednesday, June 17 · 6:00 PM"],["▶","CALL REPLAY","Overcoming overwhelm","Turn an overloaded mind into one clear decision."],["▶","CALL REPLAY","Creating income options","Find practical possibilities from what you already know."],["□","WORKBOOK","Own Your Options workbook","The complete framework in one guided workbook."],["?","Q&A LIBRARY","Ask April","Browse answers to common coaching questions."],["✦","PRIVATE COACHING","Book a private session","Get personalized clarity and an action plan."]]
   },
   plan: {
     eyebrow: "THIS WEEK'S PLAN", title: "Own your reality", copy: "Your first week is about getting honest and clear before deciding what comes next.",
-    tabs: ["This week", "This month", "Notes"],
+    tabs: ["All", "This week", "This month", "Notes", "Completed"],
     cards: [["1","START HERE","Complete your reality check-in","Name what feels most important right now."],["2","THIS WEEK","Notice what you can influence","Separate what you control from what you cannot."],["3","REFLECT","Choose what matters most","Identify the area that deserves your attention first."],["✓","PROGRESS","Nothing completed yet","Your first completed step will appear here."],["□","NOTES","Capture what you notice","Write down ideas before they disappear."],["→","NEXT WEEK","Define your future","Next, you will begin creating a clear vision."]]
   }
 };
+
+const libraryTabs = Object.fromEntries(Object.entries(views).map(([key,view])=>[key,view.tabs]));
 
 const assessmentView = {
   eyebrow:"YOUR OPTIONS ASSESSMENT", title:"See where your choices can grow", copy:"This assessment helps you notice where you already feel powerful and where more support could create new options."
@@ -193,7 +195,7 @@ function renderView(key) {
   } else {
     const view = views[key] || views.philosophy;
     const custom = adminContent.filter(item => item.library === key && item.status === "Published");
-    host.innerHTML = `<section class="view-hero"><div><p class="eyebrow">${view.eyebrow}</p><h1>${view.title}</h1><p>${view.copy}</p></div></section><div class="view-tabs">${view.tabs.map((t,i)=>`<button class="${i===0?"active":""}" data-filter="${t}">${t}</button>`).join("")}</div><div class="view-grid">${custom.map(c=>`<button class="feature-card" data-category="${c.type}" data-content-id="${c.id}" data-save-title="${c.title}" data-save-type="${c.type}"><span class="card-mark">${c.payment_url?"$":"✦"}</span><small>${c.type.toUpperCase()} · ${c.format.toUpperCase()}</small><strong>${c.title}</strong>${c.price?`<span class="price-tag">${c.price}</span>`:""}<p>${c.description}</p><b>${c.payment_url?"View offer →":"Open →"}</b></button>`).join("")}${view.cards.map(c=>`<button class="feature-card" data-category="${c[1]}" data-open="generic-card" data-save-title="${c[2]}" data-save-type="${c[1]}"><span class="card-mark">${c[0]}</span><small>${c[1]}</small><strong>${c[2]}</strong><p>${c[3]}</p><b>Open →</b></button>`).join("")}</div><p class="empty-filter" hidden>No items have been added to this category yet.</p>`;
+    host.innerHTML = `<section class="view-hero"><div><p class="eyebrow">${view.eyebrow}</p><h1>${view.title}</h1><p>${view.copy}</p></div></section><div class="view-tabs"><button class="active" data-filter="All">All</button>${view.tabs.filter(t=>t!=="All").map(t=>`<button data-filter="${t}">${t}</button>`).join("")}</div><div class="view-grid">${custom.map(c=>`<button class="feature-card" data-category="${c.category||c.type}" data-content-id="${c.id}" data-save-title="${c.title}" data-save-type="${c.type}"><span class="card-mark">${c.payment_url?"$":"✦"}</span><small>${(c.category||c.type).toUpperCase()} · ${c.format.toUpperCase()}</small><strong>${c.title}</strong>${c.price?`<span class="price-tag">${c.price}</span>`:""}<p>${c.description}</p><b>${c.payment_url?"View offer →":"Open →"}</b></button>`).join("")}${view.cards.map(c=>`<button class="feature-card" data-category="${c[1]}" data-open="generic-card" data-save-title="${c[2]}" data-save-type="${c[1]}"><span class="card-mark">${c[0]}</span><small>${c[1]}</small><strong>${c[2]}</strong><p>${c[3]}</p><b>Open →</b></button>`).join("")}</div><p class="empty-filter" hidden>No items have been added to this tab yet.</p>`;
   }
   host.querySelectorAll("[data-open]").forEach(el => el.addEventListener("click",()=>{
     if(el.dataset.saveTitle) {
@@ -294,10 +296,12 @@ function renderAdmin(host) {
     <form class="admin-form" id="cloudForm"><div class="field-row"><div class="field"><label for="cloudUrl">Supabase project URL</label><input id="cloudUrl" type="url" placeholder="https://your-project.supabase.co" value="${getCloudConfig()?.url || ""}"></div><div class="field"><label for="cloudKey">Public anon key</label><input id="cloudKey" type="password" placeholder="Your public anon key" value="${getCloudConfig()?.anonKey || ""}"></div></div><div class="admin-buttons"><button class="primary-button" type="submit">Connect & test <span>→</span></button><button class="outline-button" id="disconnectCloud" type="button">Disconnect</button></div></form>
     <p class="account-note">Required Supabase items: an <strong>oyo_content</strong> table and a private <strong>oyo-content</strong> storage bucket. Member passwords stay securely with Supabase and are never stored in this app.</p>
   </section>
+  <section class="admin-panel destination-panel"><p class="eyebrow">CONTENT DESTINATIONS</p><h2>Choose exactly where to add content</h2><p class="account-note">Select a dashboard area and tab below. The content editor will automatically prepare the correct destination.</p><div class="destination-groups">${Object.entries(libraryTabs).map(([area,tabs])=>`<div class="destination-group"><strong>${views[area]?.eyebrow||area}</strong><div>${tabs.filter(tab=>tab!=="All").map(tab=>`<button type="button" data-destination-area="${area}" data-destination-tab="${tab}">${tab} ＋</button>`).join("")}</div></div>`).join("")}</div></section>
   <div class="admin-layout">
     <section class="admin-panel"><p class="eyebrow">CONTENT EDITOR</p><h2 id="editorTitle">Add new content</h2>
       <form class="admin-form" id="contentForm">
-        <div class="field-row"><div class="field"><label for="contentType">Content type</label><select id="contentType"><option>Coaching lesson</option><option>Group coaching</option><option>Digital product</option><option>1:1 coaching</option><option>Resource</option><option>Story</option><option>Live call</option><option>Facebook group</option><option>Community link</option><option>Daily mindset</option><option>Workbook</option><option>Worksheet</option><option>Planner</option><option>Exercise</option><option>LWA link</option><option>LWA story</option></select></div><div class="field"><label for="contentLibrary">Member library</label><select id="contentLibrary"><option value="offers">Offers & shop</option><option value="coaching">Coaching hub</option><option value="resources">Resource vault</option><option value="workbooks">Workbooks & tools</option><option value="lwa">LWA Business</option><option value="stories">Story library</option><option value="philosophy">Philosophy library</option><option value="community">Community</option></select></div></div>
+        <div class="field-row"><div class="field"><label for="contentType">Content type</label><select id="contentType"><option>Coaching lesson</option><option>Group coaching</option><option>Digital product</option><option>1:1 coaching</option><option>Resource</option><option>Story</option><option>Live call</option><option>Facebook group</option><option>Community link</option><option>Daily mindset</option><option>Workbook</option><option>Worksheet</option><option>Planner</option><option>Exercise</option><option>LWA link</option><option>LWA story</option></select></div><div class="field"><label for="contentLibrary">Dashboard area</label><select id="contentLibrary"><option value="offers">Offers & shop</option><option value="coaching">Coaching hub</option><option value="resources">Resource vault</option><option value="workbooks">Workbooks & tools</option><option value="lwa">LWA Business</option><option value="stories">Story library</option><option value="philosophy">Philosophy library</option><option value="community">Community</option><option value="plan">Action plan</option></select></div></div>
+        <div class="field"><label for="contentCategory">Tab where this appears</label><select id="contentCategory"></select></div>
         <div class="field"><label for="contentTitle">Title</label><input id="contentTitle" required placeholder="Example: Creating income options"></div>
         <div class="field"><label for="contentDescription">Description</label><textarea id="contentDescription" required placeholder="What will members learn or receive?"></textarea></div>
         <div class="field-row"><div class="field"><label for="contentFormat">Format</label><select id="contentFormat"><option>Video</option><option>Audio</option><option>Article</option><option>PDF</option><option>Live session</option><option>Worksheet</option></select></div><div class="field"><label for="contentStatus">Status</label><select id="contentStatus"><option>Published</option><option>Draft</option></select></div></div>
@@ -314,8 +318,20 @@ function renderAdmin(host) {
 function bindAdmin() {
   const form = document.querySelector("#contentForm");
   const list = document.querySelector("#contentList");
+  const librarySelect=document.querySelector("#contentLibrary"), categorySelect=document.querySelector("#contentCategory");
+  const refreshCategories=(selected="")=>{const tabs=(libraryTabs[librarySelect.value]||["All"]).filter(tab=>tab!=="All");categorySelect.innerHTML=tabs.map(tab=>`<option ${tab===selected?"selected":""}>${tab}</option>`).join("");};
+  librarySelect.addEventListener("change",()=>refreshCategories());
+  refreshCategories();
+  document.querySelectorAll("[data-destination-area]").forEach(button=>button.addEventListener("click",()=>{
+    librarySelect.value=button.dataset.destinationArea;
+    refreshCategories(button.dataset.destinationTab);
+    document.querySelector("#editorTitle").textContent=`Add to ${button.dataset.destinationTab}`;
+    document.querySelector("#contentTitle").focus();
+    document.querySelector("#contentForm").scrollIntoView({behavior:"smooth",block:"start"});
+    showToast(`${button.dataset.destinationTab} selected`);
+  }));
   const refreshList = () => {
-    list.innerHTML = adminContent.length ? adminContent.map(item => `<article class="content-item"><div><small>${item.type.toUpperCase()} · ${item.format.toUpperCase()} <span class="status-pill">${item.status}</span></small><strong>${item.title}</strong><p>${item.description}</p></div><div class="item-actions"><button data-edit="${item.id}" title="Edit">✎</button><button data-delete="${item.id}" title="Delete">×</button></div></article>`).join("") : "<p>No content yet. Add your first lesson.</p>";
+    list.innerHTML = adminContent.length ? adminContent.map(item => `<article class="content-item"><div><small>${item.type.toUpperCase()} · ${item.format.toUpperCase()} <span class="status-pill">${item.status}</span></small><strong>${item.title}</strong><p>${item.description}</p><p><b>Appears in:</b> ${views[item.library]?.eyebrow||item.library} → ${item.category||"All"}</p></div><div class="item-actions"><button data-edit="${item.id}" title="Edit">✎</button><button data-delete="${item.id}" title="Delete">×</button></div></article>`).join("") : "<p>No content yet. Add your first lesson.</p>";
     list.querySelectorAll("[data-edit]").forEach(button => button.addEventListener("click",()=>editContent(Number(button.dataset.edit))));
     list.querySelectorAll("[data-delete]").forEach(button => button.addEventListener("click",()=>deleteContent(Number(button.dataset.delete))));
   };
@@ -337,6 +353,7 @@ function bindAdmin() {
       id: editingId || Date.now(), type: document.querySelector("#contentType").value, library: document.querySelector("#contentLibrary").value,
       title: document.querySelector("#contentTitle").value.trim(), description: document.querySelector("#contentDescription").value.trim(),
       format: document.querySelector("#contentFormat").value, status: document.querySelector("#contentStatus").value,
+      category: document.querySelector("#contentCategory").value,
       price: document.querySelector("#contentPrice").value.trim(), payment_url: document.querySelector("#paymentUrl").value.trim(),
       fileName, file_url: fileUrl
     };
@@ -353,7 +370,7 @@ function bindAdmin() {
 
 function editContent(id) {
   const item = adminContent.find(entry => entry.id === id); if (!item) return; editingId = id;
-  document.querySelector("#contentType").value=item.type; document.querySelector("#contentLibrary").value=item.library; document.querySelector("#contentTitle").value=item.title; document.querySelector("#contentDescription").value=item.description; document.querySelector("#contentFormat").value=item.format; document.querySelector("#contentStatus").value=item.status; document.querySelector("#contentPrice").value=item.price||""; document.querySelector("#paymentUrl").value=item.payment_url||""; document.querySelector("#editorTitle").textContent="Edit content"; window.scrollTo({top:0,behavior:"smooth"});
+  document.querySelector("#contentType").value=item.type; document.querySelector("#contentLibrary").value=item.library; document.querySelector("#contentLibrary").dispatchEvent(new Event("change")); document.querySelector("#contentCategory").value=item.category||""; document.querySelector("#contentTitle").value=item.title; document.querySelector("#contentDescription").value=item.description; document.querySelector("#contentFormat").value=item.format; document.querySelector("#contentStatus").value=item.status; document.querySelector("#contentPrice").value=item.price||""; document.querySelector("#paymentUrl").value=item.payment_url||""; document.querySelector("#editorTitle").textContent="Edit content"; window.scrollTo({top:0,behavior:"smooth"});
 }
 async function deleteContent(id) { adminContent = adminContent.filter(item=>item.id!==id); saveAdminContent(); if(getCloudConfig()) { try{await removeContent(id);}catch(error){showToast(`Deleted locally. Cloud: ${error.message}`);} } window.refreshAdminList(); showToast("Content deleted"); }
 function saveAdminContent() { localStorage.setItem("oyo-admin-content", JSON.stringify(adminContent)); }

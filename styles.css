@@ -305,6 +305,9 @@ h2 { font-size: 30px; margin-bottom: 0; }
 .question-admin-item { border: 1px solid var(--line); background: #0e0c13; border-radius: 6px; padding: 14px; display: grid; grid-template-columns: 1fr auto; gap: 10px; }
 .question-admin-item small { color: var(--purple-light); font-size: 8px; letter-spacing: 1px; }.question-admin-item strong { display: block; margin-top: 5px; font-size: 11px; line-height: 1.4; }
 .cloud-panel { border-color: #685079; margin-bottom: 20px; }
+.destination-panel { margin-bottom:20px; }
+.destination-groups { display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px; }
+.destination-group { border:1px solid var(--line);background:#0e0c13;border-radius:6px;padding:14px; }.destination-group strong { display:block;color:var(--gold);font-size:9px;letter-spacing:1px;margin-bottom:10px; }.destination-group div { display:flex;flex-wrap:wrap;gap:6px; }.destination-group button { border:1px solid #43394c;background:var(--panel-2);color:#d2ccd8;border-radius:4px;padding:7px 9px;font-size:9px; }.destination-group button:hover { border-color:var(--gold);color:white; }
 .cloud-status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; margin-bottom: 18px; }
 .cloud-dot { width: 8px; height: 8px; border-radius: 50%; background: #8d6570; }.cloud-dot.connected { background: var(--green); box-shadow: 0 0 0 4px rgba(118,184,145,.12); }
 .account-form { display: grid; gap: 13px; }
@@ -358,6 +361,7 @@ h2 { font-size: 30px; margin-bottom: 0; }
   .metric-ring { width: 104px; height: 104px; }.metric-ring::after { width: 78px; height: 78px; }
   .score-row { grid-template-columns: 110px 1fr 28px; }
   .admin-layout, .field-row { grid-template-columns: 1fr; }
+  .destination-groups { grid-template-columns:1fr; }
   .answer-scale { grid-template-columns: 1fr; }.answer-choice { min-height: 52px; text-align: left; }.answer-choice b { display: inline; margin-right: 8px; }
   .result-grid { grid-template-columns: 1fr; }
   .progress-overview { grid-template-columns:1fr 1fr; }.progress-sections { grid-template-columns:1fr; }
