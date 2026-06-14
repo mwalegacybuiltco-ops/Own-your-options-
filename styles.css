@@ -218,6 +218,12 @@ h2 { font-size: 30px; margin-bottom: 0; }
   width: 100%; min-height: 130px; resize: vertical; color: white; background: #0d0c12; border: 1px solid #413849;
   border-radius: 5px; padding: 12px; outline: none; margin: 4px 0 18px;
 }
+.writing-area { margin-top:22px;padding-top:18px;border-top:1px solid var(--line); }
+.writing-area label { display:block;color:var(--gold);font-size:9px;font-weight:700;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase; }
+.writing-area p { color:var(--muted);font-size:10px;margin-bottom:10px; }
+.writing-area textarea { width:100%;min-height:140px;resize:vertical;color:white;background:#0d0c12;border:1px solid #413849;border-radius:5px;padding:12px;outline:none;font:inherit;font-size:12px;line-height:1.6; }
+.writing-area textarea:focus { border-color:var(--purple-light); }
+.saved-writing { white-space:pre-wrap; }
 .modal-action { width: 100%; margin-top: 8px; }
 .app-view[hidden], #home[hidden] { display: none; }
 .view-hero {

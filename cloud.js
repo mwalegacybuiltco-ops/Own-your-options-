@@ -113,6 +113,23 @@ export async function saveAssessmentResult(result) {
   }, true);
 }
 
+export async function fetchMemberState() {
+  const session = getSession();
+  if (!session?.user?.id) return null;
+  const rows = await request(`/rest/v1/oyo_member_state?user_id=eq.${session.user.id}&select=state,updated_at&limit=1`, {}, true);
+  return Array.isArray(rows) ? rows[0] || null : null;
+}
+
+export async function upsertMemberState(state) {
+  const session = getSession();
+  if (!session?.user?.id) return null;
+  return request("/rest/v1/oyo_member_state?on_conflict=user_id", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({ user_id: session.user.id, state, updated_at: new Date().toISOString() })
+  }, true);
+}
+
 export async function upsertContent(item) {
   const record = { ...item };
   delete record.fileName;

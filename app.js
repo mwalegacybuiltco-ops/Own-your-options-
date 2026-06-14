@@ -1,4 +1,4 @@
-import { getCloudConfig, saveCloudConfig, clearCloudConfig, getSession, isAdmin, refreshUser, updateUserName, testConnection, signIn, signUp, signOut, fetchContent, upsertContent, removeContent, uploadFile, createFileLink, fetchQuestions, upsertQuestion, removeQuestion, saveAssessmentResult } from "./cloud.js?v=13";
+import { getCloudConfig, saveCloudConfig, clearCloudConfig, getSession, isAdmin, refreshUser, updateUserName, testConnection, signIn, signUp, signOut, fetchContent, upsertContent, removeContent, uploadFile, createFileLink, fetchQuestions, upsertQuestion, removeQuestion, saveAssessmentResult, fetchMemberState, upsertMemberState } from "./cloud.js?v=17";
 
 const continueButton = document.querySelector("#continueButton");
 const toast = document.querySelector("#toast");
@@ -70,13 +70,13 @@ const views = {
     cards: [["▤","WORKBOOKS","Own Your Options workbook","Move through the complete five-step framework."],["✓","WORKSHEETS","Options brainstorm","Discover choices and opportunities you may have missed."],["□","PLANNERS","Weekly freedom planner","Choose your priorities and protect time for action."],["◇","EXERCISES","Reality check-in","Get honest and clear about where you are right now."],["◎","WORKSHEETS","Confidence builder","Collect evidence that you can create change."],["→","PLANNERS","90-day options plan","Turn your next chapter into clear weekly actions."]]
   },
   lwa: {
-    eyebrow: "LWA BUSINESS", title: "Business, income, and legacy", copy: "Explore April’s LWA business, practical income opportunities, business resources, and ways to build a lasting legacy.",
-    tabs: ["All", "Offers", "Business tools", "Stories", "Get started"],
-    cards: [["↗","OFFERS","Explore LWA","Discover the LWA business and available opportunities."],["□","BUSINESS TOOLS","LWA resource library","Tools and guidance for building with intention."],["◎","STORIES","Why I chose LWA","April’s story, lessons, and vision for the business."],["✓","GET STARTED","Your first step","Learn what to do if LWA feels like an option for you."],["♡","COMMUNITY","Connect with April","Ask questions and explore the possibilities together."],["✦","OFFERS","Build income options","Create another path toward income and freedom."]]
+    eyebrow: "LWA BUSINESS", title: "Business, income, and legacy", copy: "Learn why LWA is one of April’s options, explore the opportunity, and continue to the official LWA link and app for all LWA resources.",
+    tabs: ["All", "LWA link", "Stories", "Get started"],
+    cards: [["◎","STORIES","Why I chose LWA","April’s story, lessons, and vision for the business."],["✓","GET STARTED","Your first step","Learn what to do if LWA feels like an option for you."],["♡","CONNECT","Connect with April","Ask questions and explore the possibilities together."]]
   },
   community: {
     eyebrow: "THE COLLECTIVE", title: "You don’t have to do this alone", copy: "Connect with people creating options, taking responsibility, and building freedom one choice at a time.",
-    tabs: ["Community feed", "Live calls", "Challenges"],
+    tabs: ["All", "Facebook group", "Live calls", "Challenges"],
     cards: [["♡","CELEBRATE","Wins & wins","Share something you chose, changed, or completed."],["◎","CONNECT","Ask the community","Get perspective from people who understand."],["✓","CHALLENGE","Seven days of options","Take one small action every day this week."],["✦","LIVE COACHING","Join this week’s call","Bring a question and leave with a next step."],["◇","ACCOUNTABILITY","Find a partner","Stay consistent with someone beside you."],["→","WELCOME","Introduce yourself","Tell the collective what you are creating."]]
   },
   coaching: {
@@ -112,7 +112,8 @@ const starterQuestions = [
 let assessmentQuestions=JSON.parse(localStorage.getItem("oyo-assessment-questions")||"null")||starterQuestions;
 let assessmentAnswers={};
 let currentQuestion=0;
-let memberProgress=JSON.parse(localStorage.getItem("oyo-member-progress")||"null")||{completed:[],saved:[],reflections:[]};
+let memberProgress=JSON.parse(localStorage.getItem("oyo-member-progress")||"null")||{completed:[],saved:[],reflections:[],notes:[]};
+memberProgress.completed ||= []; memberProgress.saved ||= []; memberProgress.reflections ||= []; memberProgress.notes ||= [];
 
 const starterContent = [
   { id: 1, type: "Coaching lesson", library: "coaching", title: "Overcoming overwhelm", description: "Turn an overloaded mind into one clear decision.", format: "Video", status: "Published" },
@@ -141,6 +142,7 @@ saveAction.addEventListener("click", () => {
   localStorage.setItem("oyo-today-action", actionInput.value.trim());
   successMessage.classList.add("show");
   completeItem(actionInput.value.trim(),"Action");
+  saveProgress();
   showToast("Your action is saved");
 });
 
@@ -207,12 +209,27 @@ function renderView(key) {
 
 function renderProgress(host) {
   const result=JSON.parse(localStorage.getItem("oyo-assessment-result")||"null"), action=localStorage.getItem("oyo-today-action")||"";
-  host.innerHTML=`<section class="view-hero"><div><p class="eyebrow">MY PROGRESS</p><h1>Your choices are adding up</h1><p>Return to what you saved, notice what you completed, and choose the next small action.</p></div>${result?`<div class="metric-ring"><div><strong>${result.overall}</strong><small>OPTIONS SCORE</small></div></div>`:""}</section><div class="progress-overview"><article class="progress-stat"><small>COMPLETED</small><strong>${memberProgress.completed.length}</strong> <span>items</span></article><article class="progress-stat"><small>SAVED</small><strong>${memberProgress.saved.length}</strong> <span>for later</span></article><article class="progress-stat"><small>REFLECTIONS</small><strong>${memberProgress.reflections.length}</strong> <span>written</span></article><article class="progress-stat"><small>JOURNEY</small><strong>${Math.min(100,memberProgress.completed.length*5)}%</strong></article></div><div class="progress-sections"><section class="progress-panel"><p class="eyebrow">TODAY</p><h2>Your next action</h2>${action?entryMarkup({id:0,title:action,type:"Action"},"action"):'<p class="empty-state">Add an action from your dashboard and it will appear here.</p>'}</section><section class="progress-panel"><p class="eyebrow">SAVED FOR LATER</p><h2>Saved resources</h2><div class="saved-list">${savedMarkup(memberProgress.saved,"saved")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WINS</p><h2>Completed</h2><div class="saved-list">${savedMarkup(memberProgress.completed,"completed")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WORDS</p><h2>Reflections</h2><div class="saved-list">${savedMarkup(memberProgress.reflections,"reflections")}</div></section></div>`;
-  host.querySelectorAll("[data-remove-progress]").forEach(btn=>btn.addEventListener("click",()=>{if(btn.dataset.list==="action")localStorage.removeItem("oyo-today-action");else memberProgress[btn.dataset.list]=memberProgress[btn.dataset.list].filter(i=>i.id!==Number(btn.dataset.removeProgress));saveProgress();renderProgress(host);}));
+  host.innerHTML=`<section class="view-hero"><div><p class="eyebrow">MY PROGRESS</p><h1>Your choices are adding up</h1><p>Return to what you saved, notice what you completed, and choose the next small action.</p></div>${result?`<div class="metric-ring"><div><strong>${result.overall}</strong><small>OPTIONS SCORE</small></div></div>`:""}</section><div class="progress-overview"><article class="progress-stat"><small>COMPLETED</small><strong>${memberProgress.completed.length}</strong> <span>items</span></article><article class="progress-stat"><small>SAVED</small><strong>${memberProgress.saved.length}</strong> <span>for later</span></article><article class="progress-stat"><small>WRITING</small><strong>${memberProgress.notes.length+memberProgress.reflections.length}</strong> <span>saved notes</span></article><article class="progress-stat"><small>JOURNEY</small><strong>${Math.min(100,memberProgress.completed.length*5)}%</strong></article></div><div class="progress-sections"><section class="progress-panel"><p class="eyebrow">TODAY</p><h2>Your next action</h2>${action?entryMarkup({id:0,title:action,type:"Action"},"action"):'<p class="empty-state">Add an action from your dashboard and it will appear here.</p>'}</section><section class="progress-panel"><p class="eyebrow">SAVED FOR LATER</p><h2>Saved resources</h2><div class="saved-list">${savedMarkup(memberProgress.saved,"saved")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WINS</p><h2>Completed</h2><div class="saved-list">${savedMarkup(memberProgress.completed,"completed")}</div></section><section class="progress-panel"><p class="eyebrow">YOUR WRITING</p><h2>Notes & reflections</h2><div class="saved-list">${savedMarkup([...memberProgress.notes,...memberProgress.reflections].sort((a,b)=>b.id-a.id),"writing")}</div></section></div>`;
+  host.querySelectorAll("[data-remove-progress]").forEach(btn=>btn.addEventListener("click",()=>{if(btn.dataset.list==="action")localStorage.removeItem("oyo-today-action");else if(btn.dataset.list==="writing"){memberProgress.notes=memberProgress.notes.filter(i=>i.id!==Number(btn.dataset.removeProgress));memberProgress.reflections=memberProgress.reflections.filter(i=>i.id!==Number(btn.dataset.removeProgress));}else memberProgress[btn.dataset.list]=memberProgress[btn.dataset.list].filter(i=>i.id!==Number(btn.dataset.removeProgress));saveProgress();renderProgress(host);}));
 }
-function entryMarkup(item,list){return `<div class="saved-entry"><div><small>${item.type.toUpperCase()}</small><strong>${item.title}</strong>${item.note?`<p>${item.note}</p>`:""}</div><button data-remove-progress="${item.id}" data-list="${list}" title="Remove">×</button></div>`;}
+function entryMarkup(item,list){return `<div class="saved-entry"><div><small>${item.type.toUpperCase()}</small><strong>${item.title}</strong>${item.note?`<p class="saved-writing">${item.note}</p>`:""}</div><button data-remove-progress="${item.id}" data-list="${list}" title="Remove">×</button></div>`;}
 function savedMarkup(items,list){return items.length?items.map(item=>entryMarkup(item,list)).join(""):'<p class="empty-state">Nothing here yet. Your saved work will appear here.</p>';}
-function saveProgress(){localStorage.setItem("oyo-member-progress",JSON.stringify(memberProgress));}
+function memberStateSnapshot(){return {progress:memberProgress,todayAction:localStorage.getItem("oyo-today-action")||"",assessmentResult:JSON.parse(localStorage.getItem("oyo-assessment-result")||"null")};}
+function saveProgress(){localStorage.setItem("oyo-member-progress",JSON.stringify(memberProgress));if(getSession())upsertMemberState(memberStateSnapshot()).catch(()=>showToast("Saved on this device. Cloud sync will retry."));}
+async function syncMemberState(){
+  if(!getSession())return;
+  try{
+    const remote=await fetchMemberState();
+    if(remote?.state){
+      memberProgress=remote.state.progress||memberProgress;
+      memberProgress.completed||=[];memberProgress.saved||=[];memberProgress.reflections||=[];memberProgress.notes||=[];
+      localStorage.setItem("oyo-member-progress",JSON.stringify(memberProgress));
+      if(remote.state.todayAction)localStorage.setItem("oyo-today-action",remote.state.todayAction);else localStorage.removeItem("oyo-today-action");
+      if(remote.state.assessmentResult)localStorage.setItem("oyo-assessment-result",JSON.stringify(remote.state.assessmentResult));
+      actionInput.value=remote.state.todayAction||"";successMessage.classList.toggle("show",Boolean(remote.state.todayAction));
+    } else await upsertMemberState(memberStateSnapshot());
+  }catch(error){showToast("Using saved data from this device");}
+}
 function saveItem(title,type){if(memberProgress.saved.some(item=>item.title===title))return showToast("Already saved");memberProgress.saved.unshift({id:Date.now(),title,type});saveProgress();showToast("Saved to My Progress");}
 function completeItem(title,type,note=""){if(!memberProgress.completed.some(item=>item.title===title))memberProgress.completed.unshift({id:Date.now(),title,type,note});saveProgress();}
 
@@ -254,6 +271,7 @@ async function finishAssessment(host,questions) {
   const scores=Object.fromEntries(Object.entries(categories).map(([name,answers])=>[name,Math.round((answers.reduce((a,b)=>a+b,0)/(answers.length*5))*100)]));
   const result={overall:Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/Object.values(scores).length),scores,created_at:new Date().toISOString()};
   localStorage.setItem("oyo-assessment-result",JSON.stringify(result)); host.innerHTML=assessmentResultsMarkup(result);
+  saveProgress();
   if(getSession())try{await saveAssessmentResult({user_id:getSession().user.id,overall_score:result.overall,scores:result.scores});}catch(error){showToast("Results saved on this device");}
 }
 
@@ -279,11 +297,11 @@ function renderAdmin(host) {
   <div class="admin-layout">
     <section class="admin-panel"><p class="eyebrow">CONTENT EDITOR</p><h2 id="editorTitle">Add new content</h2>
       <form class="admin-form" id="contentForm">
-        <div class="field-row"><div class="field"><label for="contentType">Content type</label><select id="contentType"><option>Coaching lesson</option><option>Group coaching</option><option>Digital product</option><option>1:1 coaching</option><option>Resource</option><option>Story</option><option>Live call</option><option>Daily mindset</option><option>Workbook</option><option>Worksheet</option><option>Planner</option><option>Exercise</option><option>LWA offer</option><option>LWA business tool</option></select></div><div class="field"><label for="contentLibrary">Member library</label><select id="contentLibrary"><option value="offers">Offers & shop</option><option value="coaching">Coaching hub</option><option value="resources">Resource vault</option><option value="workbooks">Workbooks & tools</option><option value="lwa">LWA Business</option><option value="stories">Story library</option><option value="philosophy">Philosophy library</option><option value="community">Community</option></select></div></div>
+        <div class="field-row"><div class="field"><label for="contentType">Content type</label><select id="contentType"><option>Coaching lesson</option><option>Group coaching</option><option>Digital product</option><option>1:1 coaching</option><option>Resource</option><option>Story</option><option>Live call</option><option>Facebook group</option><option>Community link</option><option>Daily mindset</option><option>Workbook</option><option>Worksheet</option><option>Planner</option><option>Exercise</option><option>LWA link</option><option>LWA story</option></select></div><div class="field"><label for="contentLibrary">Member library</label><select id="contentLibrary"><option value="offers">Offers & shop</option><option value="coaching">Coaching hub</option><option value="resources">Resource vault</option><option value="workbooks">Workbooks & tools</option><option value="lwa">LWA Business</option><option value="stories">Story library</option><option value="philosophy">Philosophy library</option><option value="community">Community</option></select></div></div>
         <div class="field"><label for="contentTitle">Title</label><input id="contentTitle" required placeholder="Example: Creating income options"></div>
         <div class="field"><label for="contentDescription">Description</label><textarea id="contentDescription" required placeholder="What will members learn or receive?"></textarea></div>
         <div class="field-row"><div class="field"><label for="contentFormat">Format</label><select id="contentFormat"><option>Video</option><option>Audio</option><option>Article</option><option>PDF</option><option>Live session</option><option>Worksheet</option></select></div><div class="field"><label for="contentStatus">Status</label><select id="contentStatus"><option>Published</option><option>Draft</option></select></div></div>
-        <div class="field-row"><div class="field"><label for="contentPrice">Display price</label><input id="contentPrice" placeholder="Example: $97 or $997"></div><div class="field"><label for="paymentUrl">Payment or booking link</label><input id="paymentUrl" type="url" placeholder="https://buy.stripe.com/..."></div></div>
+        <div class="field-row"><div class="field"><label for="contentPrice">Display price</label><input id="contentPrice" placeholder="Example: $97 or $997"></div><div class="field"><label for="paymentUrl">Payment, booking, or external link</label><input id="paymentUrl" type="url" placeholder="https://buy.stripe.com/... or your LWA link"></div></div>
         <label class="upload-zone">Attach video, audio, PDF, or workbook<br><input id="contentFile" type="file" accept="video/*,audio/*,.pdf,.doc,.docx"></label>
         <div class="admin-buttons"><button class="primary-button" type="submit">Publish content <span>→</span></button><button class="outline-button" id="cancelEdit" type="button">Clear</button></div>
       </form>
@@ -339,7 +357,7 @@ function editContent(id) {
 }
 async function deleteContent(id) { adminContent = adminContent.filter(item=>item.id!==id); saveAdminContent(); if(getCloudConfig()) { try{await removeContent(id);}catch(error){showToast(`Deleted locally. Cloud: ${error.message}`);} } window.refreshAdminList(); showToast("Content deleted"); }
 function saveAdminContent() { localStorage.setItem("oyo-admin-content", JSON.stringify(adminContent)); }
-async function openPublishedContent(id) { const item=adminContent.find(entry=>entry.id===id); if(!item)return; let fileLink=""; if(item.file_url&&getSession())try{fileLink=await createFileLink(item.file_url);}catch(error){showToast(error.message);} panels["published"]=[`${item.type.toUpperCase()} · ${item.format.toUpperCase()}`,item.title,`${item.price?`<span class="price-tag">${item.price}</span>`:""}<p>${item.description}</p>${item.payment_url?`<a class="primary-button purchase-button" href="${item.payment_url}" target="_blank" rel="noopener">Purchase or book securely →</a>`:""}${item.fileName?`<p><strong>Attached:</strong> ${item.fileName}</p>`:""}${fileLink?`<p><a href="${fileLink}" target="_blank">Open attached file →</a></p>`:item.file_url?`<p>Sign in to open this private attachment.</p>`:""}`]; openPanel("published"); }
+async function openPublishedContent(id) { const item=adminContent.find(entry=>entry.id===id); if(!item)return; let fileLink=""; if(item.file_url&&getSession())try{fileLink=await createFileLink(item.file_url);}catch(error){showToast(error.message);} const linkLabel=item.library==="lwa"?"Open official LWA app →":item.library==="community"?"Join the Facebook group →":"Purchase or book securely →"; panels["published"]=[`${item.type.toUpperCase()} · ${item.format.toUpperCase()}`,item.title,`${item.price?`<span class="price-tag">${item.price}</span>`:""}<p>${item.description}</p>${item.payment_url?`<a class="primary-button purchase-button" href="${item.payment_url}" target="_blank" rel="noopener">${linkLabel}</a>`:""}${item.fileName?`<p><strong>Attached:</strong> ${item.fileName}</p>`:""}${fileLink?`<p><a href="${fileLink}" target="_blank">Open attached file →</a></p>`:item.file_url?`<p>Sign in to open this private attachment.</p>`:""}`]; openPanel("published"); }
 async function syncFromCloud(){ if(!getCloudConfig())return; const remote=await fetchContent(); if(Array.isArray(remote)){const byId=new Map(adminContent.map(item=>[String(item.id),item]));remote.forEach(item=>byId.set(String(item.id),item));adminContent=[...byId.values()];saveAdminContent();} }
 async function syncQuestionsFromCloud(){ if(!getCloudConfig()||!getSession())return; const remote=await fetchQuestions(); if(Array.isArray(remote)&&remote.length){assessmentQuestions=remote;saveQuestions();} }
 
@@ -351,9 +369,10 @@ function openPanel(key) {
   if (!panel) return;
   modalEyebrow.textContent = panel[0];
   modalTitle.textContent = panel[1];
-  modalContent.innerHTML = `${panel[2]}<button class="outline-button wide save-for-later" type="button">Save for later ＋</button>`;
+  const savedNote=memberProgress.notes.find(item=>item.title===panel[1])?.note||memberProgress.reflections.find(item=>item.title===panel[1])?.note||"";
+  modalContent.innerHTML = `${panel[2]}<div class="writing-area"><label for="memberWriting">My writing</label><p>Write your thoughts, answers, or next steps here. You can return to them in My Progress.</p><textarea id="memberWriting" placeholder="Start writing here...">${escapeText(savedNote)}</textarea></div><button class="outline-button wide save-for-later" type="button">Save for later ＋</button>`;
   modalContent.querySelector(".save-for-later").addEventListener("click",()=>saveItem(panel[1],panel[0]));
-  modalAction.textContent = key==="reflection" ? "Save reflection ✓" : "Save to My Progress ✓";
+  modalAction.textContent = "Save writing & progress ✓";
   modalAction.dataset.panelKey=key;
   modalBackdrop.hidden = false;
   document.body.style.overflow = "hidden";
@@ -374,16 +393,14 @@ document.querySelectorAll("[data-open]").forEach((control) => {
 
 modalClose.addEventListener("click", closePanel);
 modalAction.addEventListener("click", () => {
-  const note=modalContent.querySelector("textarea")?.value.trim()||"";
-  if(modalAction.dataset.panelKey==="reflection" && note) {
-    memberProgress.reflections.unshift({id:Date.now(),title:"Weekly reflection",type:"Reflection",note});
-    saveProgress();
-  } else {
-    completeItem(modalTitle.textContent,modalEyebrow.textContent,note);
-  }
+  const note=modalContent.querySelector("#memberWriting")?.value.trim()||"";
+  if(note) saveWriting(modalTitle.textContent,modalEyebrow.textContent,note);
+  completeItem(modalTitle.textContent,modalEyebrow.textContent,note);
   closePanel();
   showToast("Saved to My Progress");
 });
+function escapeText(value){return String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function saveWriting(title,type,note){memberProgress.notes=memberProgress.notes.filter(item=>item.title!==title);memberProgress.notes.unshift({id:Date.now(),title,type,note});saveProgress();}
 modalBackdrop.addEventListener("click", (event) => {
   if (event.target === modalBackdrop) closePanel();
 });
@@ -403,7 +420,7 @@ function renderAccount() {
   } else {
     accountState.innerHTML=`<p class="account-note">Sign in to access your coaching from any device.</p><div id="accountMessage"></div><form class="account-form" id="signInForm"><div class="field"><label for="accountName">Your name</label><input id="accountName" type="text" autocomplete="name" placeholder="Needed only when creating an account"></div><div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required></div><div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="6" required></div><button class="primary-button" type="submit">Sign in <span>→</span></button><button class="text-button" id="createAccount" type="button">Create a new member account</button></form>`;
     document.querySelector("#accountTitle").textContent="Sign in to your options";
-    document.querySelector("#signInForm").addEventListener("submit",async event=>{event.preventDefault();setAccountMessage("Signing in…");try{await signIn(document.querySelector("#accountEmail").value,document.querySelector("#accountPassword").value);await refreshUser();updateAccess();updateMemberIdentity();showToast("Welcome back");renderAccount();}catch(error){setAccountMessage(friendlyAuthError(error.message),true);}});
+    document.querySelector("#signInForm").addEventListener("submit",async event=>{event.preventDefault();setAccountMessage("Signing in…");try{await signIn(document.querySelector("#accountEmail").value,document.querySelector("#accountPassword").value);await refreshUser();await syncMemberState();updateAccess();updateMemberIdentity();showToast("Welcome back. Your progress is synced.");renderAccount();}catch(error){setAccountMessage(friendlyAuthError(error.message),true);}});
     document.querySelector("#createAccount").addEventListener("click",async()=>{const name=document.querySelector("#accountName").value.trim(),email=document.querySelector("#accountEmail").value,password=document.querySelector("#accountPassword").value;if(!name)return setAccountMessage("Enter your name first.",true);if(!email||!password)return setAccountMessage("Enter your email and password first.",true);setAccountMessage("Creating your account…");try{await signUp(email,password,name);setAccountMessage("Account created. Check your email and confirm it before signing in.");}catch(error){setAccountMessage(friendlyAuthError(error.message),true);}});
   }
 }
@@ -420,7 +437,7 @@ accountBackdrop.addEventListener("click",event=>{if(event.target===accountBackdr
 accountClose.addEventListener("click",()=>document.body.style.overflow="");
 updateAccess();
 updateMemberIdentity();
-if(getSession()) refreshUser().then(()=>{updateAccess();updateMemberIdentity();}).catch(()=>{signOut();updateAccess();updateMemberIdentity();});
+if(getSession()) refreshUser().then(async()=>{await syncMemberState();updateAccess();updateMemberIdentity();}).catch(()=>{signOut();updateAccess();updateMemberIdentity();});
 if(getCloudConfig()) { syncFromCloud().catch(()=>{}); syncQuestionsFromCloud().catch(()=>{}); }
 
 function showMemberApp(view="home") {
